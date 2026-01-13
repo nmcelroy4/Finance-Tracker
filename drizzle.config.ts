@@ -1,10 +1,14 @@
-import { defineConfig } from "drizzle-kit";
+import { defineConfig } from 'drizzle-kit';
+import * as dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config({ path: '.env.local' });
 
 export default defineConfig({
-  schema: "./drizzle/schema.ts",
-  out: "./drizzle/migrations",
-  dialect: "sqlite",
+  schema: './drizzle/schema.ts',
+  out: './drizzle/migrations',
+  dialect: 'postgresql',
   dbCredentials: {
-    url: "file:./drizzle/expense-tracker.db",
+    url: process.env.DATABASE_URL!,
   },
 });
