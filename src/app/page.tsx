@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Dashboard from '@/components/Dashboard';
 
 type Category = {
   id: number;
@@ -154,6 +155,12 @@ export default function HomePage() {
   return (
     <main className="max-w-4xl mx-auto p-8">
       <h1 className="text-3xl font-bold mb-8">Xpensive</h1>
+
+      {/* ADD DASHBOARD HERE */}
+      <Dashboard transactions={transactions} categories={categories} />
+
+      {/* Spacing */}
+      <div className="my-12" />
 
       {/* Add Transaction Form */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
