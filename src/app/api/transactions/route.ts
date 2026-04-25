@@ -19,6 +19,15 @@ const createTransactionSchema = z.object({
   lines: z.array(transactionLineSchema).min(1), // Must have at least 1 line
 });
 
+const updateTransactionSchema = z.object({
+  id: z.number().int().positive(),
+  description: z.string().min(1),
+  totalAmount: z.number().int(),
+  date: z.string().datetime().optional(),
+  notes: z.string().optional(),
+  lines: z.array(transactionLineSchema).min(1),
+});
+
 // POST - Create new transaction with lines
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -40,7 +49,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Create transaction
     const [newTransaction] = await db.insert(transactions).values({
       description,
       totalAmount,
@@ -48,7 +56,6 @@ export async function POST(req: NextRequest) {
       notes,
     }).returning();
 
-    // Create line items
     const lineItems = lines.map(line => ({
       transactionId: newTransaction.id,
       categoryId: line.categoryId,
@@ -71,12 +78,9 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET - List all transactions with their lines
 export async function GET() {
-  // We need to join transactions with their lines
   const allTransactions = await db.select().from(transactions);
   
-  // For each transaction, get its lines
   const transactionsWithLines = await Promise.all(
     allTransactions.map(async (transaction) => {
       const lines = await db
@@ -94,7 +98,6 @@ export async function GET() {
   return NextResponse.json(transactionsWithLines);
 }
 
-// DELETE - Delete a transaction (cascades to lines)
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
 
@@ -107,19 +110,62 @@ export async function DELETE(req: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
-// PUT - Update transaction (for now, just basic fields)
 export async function PUT(req: NextRequest) {
   const body = await req.json();
-  const { id, description, notes } = body;
+  const result = updateTransactionSchema.safeParse(body);
 
-  if (typeof id !== 'number') {
-    return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+  if (!result.success) {
+    return NextResponse.json({ error: result.error.errors }, { status: 400 });
   }
 
-  await db
-    .update(transactions)
-    .set({ description, notes })
-    .where(eq(transactions.id, id));
+  const { id, description, totalAmount, date, notes, lines } = result.data;
 
-  return NextResponse.json({ success: true });
+  const lineSum = lines.reduce((sum, line) => sum + line.amount, 0);
+  if (lineSum !== totalAmount) {
+    return NextResponse.json(
+      { error: `Line items sum (${lineSum}) doesn't match total (${totalAmount})` },
+      { status: 400 }
+    );
+  }
+
+  try {
+    // Update the transaction
+    await db
+      .update(transactions)
+      .set({
+        description,
+        totalAmount,
+        date: date ? new Date(date) : undefined,
+        notes,
+      })
+      .where(eq(transactions.id, id));
+
+  await db.delete(transactionLines).where(eq(transactionLines.transactionId, id));
+
+  const lineItems = lines.map(line => ({
+    transactionId: id,
+    categoryId: line.categoryId,
+    amount: line.amount,
+    notes: line.notes,
+  }));
+
+  const updatedLines = await db.insert(transactionLines).values(lineItems).returning();
+
+  const [updatedTransaction] = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.id, id));
+
+
+  return NextResponse.json({
+      success: true,
+      transaction: {
+        ...updatedTransaction,
+        lines: updatedLines,
+      },
+    });
+  } catch (error) {
+    console.error('Transaction update failed:', error);
+    return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 });
+  }
 }
