@@ -1,6 +1,5 @@
 import { pgTable, serial, text, integer, timestamp, varchar } from 'drizzle-orm/pg-core';
 
-// Categories - how we classify transactions
 export const categories = pgTable('categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
@@ -10,7 +9,6 @@ export const categories = pgTable('categories', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// Transactions - the actual money movements
 export const transactions = pgTable('transactions', {
   id: serial('id').primaryKey(),
   description: text('description').notNull(),
@@ -20,7 +18,6 @@ export const transactions = pgTable('transactions', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
-// Transaction Lines - how transactions are categorized
 export const transactionLines = pgTable('transaction_lines', {
   id: serial('id').primaryKey(),
   transactionId: integer('transaction_id')
@@ -33,3 +30,13 @@ export const transactionLines = pgTable('transaction_lines', {
   notes: text('notes'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
+
+export const budget = pgTable('budget', {
+  id: serial('id').primaryKey(),
+  categoryId: integer('category_id')
+  .notNull()
+  .references(() => categories.id, {onDelete: 'cascade'}),
+  monthYear: varchar('month_year', {length: 7}).notNull(),
+  limit: integer('limit').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
