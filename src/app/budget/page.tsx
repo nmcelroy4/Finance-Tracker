@@ -3,6 +3,9 @@
 import BudgetTable from '@/components/BudgetTable';
 import { useEffect, useState, useMemo } from 'react';
 import { Category, Transaction, Budget } from '@/types';
+import { Button } from '@/components/ui/Button';
+import { FunnelPlus } from 'lucide-react';
+
 
 export default function BudgetPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -133,13 +136,9 @@ export default function BudgetPage() {
     <main className="max-w-6xl mx-auto p-8">
         <header className="flex center">
             <h1 className="text-3xl font-bold mb-8">Budget</h1>
-            <label className="block text-sm font-medium mb-2">Select Month</label>
-            <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="border rounded px-3 py-2"
-            />
+            <Button className="ml-2" variant="outline" size="icon" aria-label="filter">
+                <FunnelPlus />
+            </Button>
         </header>
         
 

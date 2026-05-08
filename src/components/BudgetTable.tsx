@@ -45,7 +45,6 @@ export default function BudgetTable({ budgets, categories, categorySpending }: B
 
   return (
     <Table>
-      <TableCaption>Budget overview for all categories</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead>Category</TableHead>
