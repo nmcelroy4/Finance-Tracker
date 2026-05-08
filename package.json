@@ -10,6 +10,7 @@
     "seed": "dotenv -e .env.local -- tsx scripts/seed-categories.ts"
   },
   "dependencies": {
+    "@base-ui/react": "^1.4.1",
     "@neondatabase/serverless": "^1.0.2",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.2",
