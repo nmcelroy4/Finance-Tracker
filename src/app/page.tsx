@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import Dashboard from '@/components/Dashboard';
+import Dashboard from '@/app/dashboard/Dashboard';
 import { Category, Transaction, DashboardFilterRange } from '@/types';
 
 export default function DashboardPage() {

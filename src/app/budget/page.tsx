@@ -1,6 +1,6 @@
 'use client';
 
-import BudgetTable from '@/components/BudgetTable';
+import BudgetTable from '@/app/budget/BudgetTable';
 import { useEffect, useState, useMemo } from 'react';
 import { Category, Transaction, Budget } from '@/types';
 
