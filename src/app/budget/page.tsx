@@ -3,6 +3,9 @@
 import BudgetTable from '@/components/BudgetTable';
 import { useEffect, useState, useMemo } from 'react';
 import { Category, Transaction, Budget } from '@/types';
+import { Button } from '@/components/ui/Button';
+import { FunnelPlus } from 'lucide-react';
+
 
 export default function BudgetPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -133,13 +136,9 @@ export default function BudgetPage() {
     <main className="max-w-6xl mx-auto p-8">
         <header className="flex center">
             <h1 className="text-3xl font-bold mb-8">Budget</h1>
-            <label className="block text-sm font-medium mb-2">Select Month</label>
-            <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="border rounded px-3 py-2"
-            />
+            <Button className="ml-2" variant="outline" size="icon" aria-label="filter">
+                <FunnelPlus />
+            </Button>
         </header>
         
 
@@ -177,90 +176,6 @@ export default function BudgetPage() {
           categories={categories}
           categorySpending={categorySpending}
         />
-      </div>
-
-      {/* Budget Tracking */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-6">Budget Tracking by Category</h2>
-
-        <div className="space-y-6">
-          {expenseCategories.map((category) => {
-            const budgetItem = getBudgetForCategory(category.id); 
-            const spending = getSpendingForCategory(category.id);
-            const budgetLimit = budgetItem?.limit || 0;  // ← Changed from budget?.limit
-            const percentage = budgetLimit > 0 ? (spending / budgetLimit) * 100 : 0;
-            const isOverBudget = spending > budgetLimit && budgetLimit > 0;
-
-            return (
-              <div key={category.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{category.icon}</span>
-                    <h3 className="font-semibold">{category.name}</h3>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">
-                      ${(spending / 100).toFixed(2)}
-                      {budgetLimit > 0 && (
-                        <span className="text-gray-500 font-normal">
-                          {' '}/ ${(budgetLimit / 100).toFixed(2)}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Edit Budget */}
-                {editingBudgetId === category.id ? (
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      className="flex-1 border rounded px-3 py-2"
-                      placeholder="Budget limit"
-                      value={editAmount}
-                      onChange={(e) => setEditAmount(e.target.value)}
-                    />
-                    <button
-                      onClick={() => handleSetBudget(category.id, editAmount)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingBudgetId(null);
-                        setEditAmount('');
-                      }}
-                      className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingBudgetId(category.id);
-                        setEditAmount((budgetLimit / 100).toString());
-                      }}
-                      className="flex-1 bg-blue-100 text-blue-700 px-3 py-2 rounded hover:bg-blue-200"
-                    >
-                      {budgetLimit > 0 ? 'Edit Budget' : 'Set Budget'}
-                    </button>
-                    {budgetLimit > 0 && (
-                      <button
-                        onClick={() => handleDeleteBudget(budgetItem!.id)}
-                        className="bg-red-100 text-red-700 px-3 py-2 rounded hover:bg-red-200"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
       </div>
     </main>
   );
