@@ -28,3 +28,5 @@ export type Budget = {
   monthYear: string;
   limit: number;
 };
+
+export type DashboardFilterRange = 'this-month' | 'last-month' | 'last-3-months' | 'all-time' | 'custom';

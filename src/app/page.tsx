@@ -2,37 +2,12 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Dashboard from '@/components/Dashboard';
-
-type Category = {
-  id: number;
-  name: string;
-  type: string;
-  color: string;
-  icon: string | null;
-};
-
-type TransactionLine = {
-  id: number;
-  categoryId: number;
-  amount: number;
-  notes: string | null;
-};
-
-type Transaction = {
-  id: number;
-  description: string;
-  totalAmount: number;
-  date: string;
-  notes: string | null;
-  lines: TransactionLine[];
-};
-
-type DateRange = 'this-month' | 'last-month' | 'last-3-months' | 'all-time' | 'custom';
+import { Category, Transaction, DashboardFilterRange } from '@/types';
 
 export default function DashboardPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [dateRange, setDateRange] = useState<DateRange>('this-month');
+  const [dashboardFilterRange, setDashboardFilterRange] = useState<DashboardFilterRange>('this-month');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
 
@@ -62,7 +37,7 @@ export default function DashboardPage() {
     let startDate: Date;
     let endDate: Date = now;
 
-    switch (dateRange) {
+    switch (dashboardFilterRange) {
       case 'this-month':
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
@@ -88,11 +63,11 @@ export default function DashboardPage() {
       const transactionDate = new Date(transaction.date);
       return transactionDate >= startDate && transactionDate <= endDate;
     });
-  }, [transactions, dateRange, customStartDate, customEndDate]);
+  }, [transactions, dashboardFilterRange, customStartDate, customEndDate]);
 
   const getDateRangeText = () => {
     const now = new Date();
-    switch (dateRange) {
+    switch (dashboardFilterRange) {
       case 'this-month':
         return now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       case 'last-month':
@@ -111,7 +86,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="max-w-6xl mx-auto p-8">
+    <main className="max-w-full mx-auto p-8">
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
       {/* Date Range Selector */}
@@ -121,9 +96,9 @@ export default function DashboardPage() {
           
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => setDateRange('this-month')}
+              onClick={() => setDashboardFilterRange('this-month')}
               className={`px-4 py-2 rounded font-medium transition ${
-                dateRange === 'this-month'
+                dashboardFilterRange === 'this-month'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
@@ -132,9 +107,9 @@ export default function DashboardPage() {
             </button>
             
             <button
-              onClick={() => setDateRange('last-month')}
+              onClick={() => setDashboardFilterRange('last-month')}
               className={`px-4 py-2 rounded font-medium transition ${
-                dateRange === 'last-month'
+                dashboardFilterRange === 'last-month'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
@@ -143,9 +118,9 @@ export default function DashboardPage() {
             </button>
             
             <button
-              onClick={() => setDateRange('last-3-months')}
+              onClick={() => setDashboardFilterRange('last-3-months')}
               className={`px-4 py-2 rounded font-medium transition ${
-                dateRange === 'last-3-months'
+                dashboardFilterRange === 'last-3-months'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
@@ -154,9 +129,9 @@ export default function DashboardPage() {
             </button>
             
             <button
-              onClick={() => setDateRange('all-time')}
+              onClick={() => setDashboardFilterRange('all-time')}
               className={`px-4 py-2 rounded font-medium transition ${
-                dateRange === 'all-time'
+                dashboardFilterRange === 'all-time'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
@@ -165,9 +140,9 @@ export default function DashboardPage() {
             </button>
             
             <button
-              onClick={() => setDateRange('custom')}
+              onClick={() => setDashboardFilterRange('custom')}
               className={`px-4 py-2 rounded font-medium transition ${
-                dateRange === 'custom'
+                dashboardFilterRange === 'custom'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
@@ -176,7 +151,7 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {dateRange === 'custom' && (
+          {dashboardFilterRange === 'custom' && (
             <div className="flex gap-2 items-center">
               <input
                 type="date"

@@ -130,7 +130,7 @@ export default function BudgetPage() {
   };
 
     return (
-    <main className="max-w-6xl mx-auto p-8">
+    <main className="max-w-full mx-auto p-8">
         <header className="flex center">
             <h1 className="text-3xl font-bold mb-8">Budget</h1>
             <label className="block text-sm font-medium mb-2">Select Month</label>

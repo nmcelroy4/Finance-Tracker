@@ -217,7 +217,7 @@ export default function TransactionsPage() {
   };
 
   return (
-    <main className="max-w-6xl mx-auto p-8">
+    <main className="max-w-full mx-auto p-8">
       <h1 className="text-3xl font-bold mb-8">Transactions</h1>
 
       {/* Add Transaction Form */}
