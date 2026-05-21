@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import InfoTile from './InfoTile';
 
 type Category = {
   id: number;
@@ -87,28 +88,9 @@ export default function Dashboard({ transactions, categories }: DashboardProps) 
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <p className="text-sm text-green-700 font-medium">Total Income</p>
-          <p className="text-3xl font-bold text-green-900">
-            ${(stats.totalIncome / 100).toFixed(2)}
-          </p>
-        </div>
-
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <p className="text-sm text-red-700 font-medium">Total Expenses</p>
-          <p className="text-3xl font-bold text-red-900">
-            ${(stats.totalExpenses / 100).toFixed(2)}
-          </p>
-        </div>
-
-        <div className={`${stats.netCashFlow >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'} border rounded-lg p-6`}>
-          <p className={`text-sm font-medium ${stats.netCashFlow >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-            Net Cash Flow
-          </p>
-          <p className={`text-3xl font-bold ${stats.netCashFlow >= 0 ? 'text-blue-900' : 'text-orange-900'}`}>
-            {stats.netCashFlow >= 0 ? '+' : '-'}${Math.abs(stats.netCashFlow / 100).toFixed(2)}
-          </p>
-        </div>
+        <InfoTile title="Income" total={(stats.totalIncome / 100).toFixed(2)}/>
+        <InfoTile title="Expenses" total={(stats.totalExpenses / 100).toFixed(2)}/>
+        <InfoTile title="Net Cashflow" total={(stats.netCashFlow / 100).toFixed(2)}/>
       </div>
 
       {/* Charts Grid */}

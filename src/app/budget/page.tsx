@@ -1,6 +1,6 @@
 'use client';
 
-import BudgetTable from '@/components/BudgetTable';
+import BudgetTable from '@/app/budget/BudgetTable';
 import { useEffect, useState, useMemo } from 'react';
 import { Category, Transaction, Budget } from '@/types';
 import { Button } from '@/components/ui/Button';
@@ -133,7 +133,7 @@ export default function BudgetPage() {
   };
 
     return (
-    <main className="max-w-6xl mx-auto p-8">
+    <main className="max-w-full mx-auto p-8">
         <header className="flex center">
             <h1 className="text-3xl font-bold mb-8">Budget</h1>
             <Button className="ml-2" variant="outline" size="icon" aria-label="filter">
