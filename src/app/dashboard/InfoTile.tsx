@@ -1,7 +1,23 @@
-import { Card } from "../../components/ui/Card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/Card"
 
-export default function InfoTile() {
+interface InfoTileProps {
+    title: string
+    total: string
+}
+
+export default function InfoTile( {title, total}: InfoTileProps) {
     return(
-        <Card />
+        <Card>
+            <CardTitle>{title}</CardTitle>
+            <CardContent>{total}</CardContent>
+        </Card>
     )
 }
