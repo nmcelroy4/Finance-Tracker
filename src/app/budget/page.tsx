@@ -5,15 +5,17 @@ import { useEffect, useState, useMemo } from 'react';
 import { Category, Transaction, Budget } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { FunnelPlus } from 'lucide-react';
+import AddLineModal from './AddLineModal';
 
 
 export default function BudgetPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [budgetLine, setBudgetLine] = useState<Budget[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [editingBudgetId, setEditingBudgetId] = useState<number | null>(null);
   const [editAmount, setEditAmount] = useState('');
+  const [addLine, setAddLine] = useState<boolean>(false)
 
   const getCurrentMonth = () => {
     const now = new Date();
@@ -46,7 +48,6 @@ export default function BudgetPage() {
     loadData();
   }, []);
 
-  // Load budgets for selected month
   useEffect(() => {
     if (!selectedMonth) return;
 
@@ -54,7 +55,7 @@ export default function BudgetPage() {
       try {
         const res = await fetch(`/api/budget?monthYear=${selectedMonth}`);
         const data = await res.json();
-        setBudgets(data);  // ← Changed from setbudget
+        setBudgetLine(data);
       } catch (error) {
         console.error('Failed to load budget:', error);
       }
@@ -63,7 +64,6 @@ export default function BudgetPage() {
     loadBudgets();
   }, [selectedMonth]);
 
-  // Calculate spending by category for selected month
   const categorySpending = useMemo(() => {
     const spending: Record<number, number> = {};
 
@@ -87,7 +87,7 @@ export default function BudgetPage() {
   // Get expense categories only
   const expenseCategories = categories.filter(c => c.type === 'expense');
 
-  const handleSetBudget = async (categoryId: number, amount: string) => {
+  const handleSetBudgetLine = async (categoryId: number, amount: string) => {
     if (!amount || Number(amount) <= 0) return;
 
     const res = await fetch('/api/budget', {
@@ -102,10 +102,10 @@ export default function BudgetPage() {
 
     if (res.ok) {
       const data = await res.json();
-      setBudgets(
-        budgets.some(b => b.categoryId === categoryId)
-          ? budgets.map(b => b.categoryId === categoryId ? data.budget : b)
-          : [...budgets, data.budget]
+      setBudgetLine(
+        budgetLine.some(b => b.categoryId === categoryId)
+          ? budgetLine.map(b => b.categoryId === categoryId ? data.budget : b)
+          : [...budgetLine, data.budget]
       );
       setEditingBudgetId(null);
       setEditAmount('');
@@ -120,12 +120,12 @@ export default function BudgetPage() {
     });
 
     if (res.ok) {
-      setBudgets(budgets.filter(b => b.id !== id));
+      setBudgetLine(budgetLine.filter(b => b.id !== id));
     }
   };
 
   const getBudgetForCategory = (categoryId: number) => {
-    return budgets.find(b => b.categoryId === categoryId);
+    return budgetLine.find(b => b.categoryId === categoryId);
   };
 
   const getSpendingForCategory = (categoryId: number) => {
@@ -147,7 +147,7 @@ export default function BudgetPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <p className="text-sm text-blue-700 font-medium">Total Budgeted</p>
           <p className="text-3xl font-bold text-blue-900">
-            ${(budgets.reduce((sum, b) => sum + b.limit, 0) / 100).toFixed(2)}
+            ${(budgetLine.reduce((sum, b) => sum + b.limit, 0) / 100).toFixed(2)}
           </p>
         </div>
 
@@ -162,7 +162,7 @@ export default function BudgetPage() {
           <p className="text-sm text-green-700 font-medium">Remaining</p>
           <p className="text-3xl font-bold text-green-900">
             ${(
-              (budgets.reduce((sum, b) => sum + b.limit, 0) - Object.values(categorySpending).reduce((a, b) => a + b, 0)) / 100 
+              (budgetLine.reduce((sum, b) => sum + b.limit, 0) - Object.values(categorySpending).reduce((a, b) => a + b, 0)) / 100 
             ).toFixed(2)}
           </p>
         </div>
@@ -170,9 +170,21 @@ export default function BudgetPage() {
 
       {/* Budget Table */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-6">Budget Overview</h2>
+        <div className='flex justify-between'>
+          <h2 className="text-xl font-semibold mb-6">Budget Overview</h2>
+          <Button className='bg-blue-600' onClick={() => setAddLine(true)}>
+            Add Line
+          </Button>
+        </div>
+        
+        {addLine && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <AddLineModal setAddLine={setAddLine}/>
+          </div>
+        )}
+        
         <BudgetTable
-          budgets={budgets} 
+          budgetLines={budgetLine} 
           categories={categories}
           categorySpending={categorySpending}
         />

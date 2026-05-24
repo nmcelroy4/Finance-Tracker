@@ -12,12 +12,12 @@ import {
 import { Budget, Category } from '@/types';
 
 type BudgetTableProps = {
-  budgets: Budget[];
+  budgetLines: Budget[];
   categories: Category[];
   categorySpending: Record<number, number>;
 };
 
-export default function BudgetTable({ budgets, categories, categorySpending }: BudgetTableProps) {
+export default function BudgetTable({ budgetLines, categories, categorySpending }: BudgetTableProps) {
   const getCategoryName = (categoryId: number) => {
     return categories.find(c => c.id === categoryId)?.name || 'Unknown';
   };
@@ -57,14 +57,14 @@ export default function BudgetTable({ budgets, categories, categorySpending }: B
         </TableRow>
       </TableHeader>
       <TableBody>
-        {budgets.length === 0 ? (
+        {budgetLines.length === 0 ? (
           <TableRow>
             <TableCell colSpan={6} className="text-center text-gray-500">
               No budget set yet
             </TableCell>
           </TableRow>
         ) : (
-          budgets.map((budgets) => {
+          budgetLines.map((budgets) => {
             const spending = getSpending(budgets.categoryId);
             const remaining = budgets.limit - spending;
             const status = getStatus(budgets.categoryId, budgets.limit);
