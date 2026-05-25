@@ -284,7 +284,7 @@ export default function TransactionsPage() {
                   <option value={0}>Select category...</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
+                     {cat.name}
                     </option>
                   ))}
                 </select>

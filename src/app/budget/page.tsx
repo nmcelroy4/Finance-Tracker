@@ -26,7 +26,6 @@ export default function BudgetPage() {
     setSelectedMonth(getCurrentMonth());
   }, []);
 
-  // fetch data
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -47,6 +46,8 @@ export default function BudgetPage() {
 
     loadData();
   }, []);
+
+  const expenseCategories = categories.filter(c => c.type === 'expense');
 
   useEffect(() => {
     if (!selectedMonth) return;
@@ -83,34 +84,6 @@ export default function BudgetPage() {
 
     return spending;
   }, [transactions, categories, selectedMonth]);
-
-  // Get expense categories only
-  const expenseCategories = categories.filter(c => c.type === 'expense');
-
-  const handleSetBudgetLine = async (categoryId: number, amount: string) => {
-    if (!amount || Number(amount) <= 0) return;
-
-    const res = await fetch('/api/budget', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        categoryId,
-        monthYear: selectedMonth,
-        limit: Math.round(Number(amount) * 100),
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setBudgetLine(
-        budgetLine.some(b => b.categoryId === categoryId)
-          ? budgetLine.map(b => b.categoryId === categoryId ? data.budget : b)
-          : [...budgetLine, data.budget]
-      );
-      setEditingBudgetId(null);
-      setEditAmount('');
-    }
-  };
 
   const handleDeleteBudget = async (id: number) => {
     const res = await fetch('/api/budget', {
@@ -179,7 +152,13 @@ export default function BudgetPage() {
         
         {addLine && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <AddLineModal setAddLine={setAddLine}/>
+            <AddLineModal 
+              setAddLine={setAddLine} 
+              categories={expenseCategories} 
+              month={selectedMonth}
+              budgetLine={budgetLine}
+              setBudgetLine={setBudgetLine}
+            />
           </div>
         )}
         
