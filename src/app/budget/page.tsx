@@ -16,6 +16,7 @@ export default function BudgetPage() {
   const [editingBudgetId, setEditingBudgetId] = useState<number | null>(null);
   const [editAmount, setEditAmount] = useState('');
   const [addLine, setAddLine] = useState<boolean>(false)
+  const [deleteLine, setDeleteLine] = useState<boolean>(false)
 
   const getCurrentMonth = () => {
     const now = new Date();
@@ -85,18 +86,6 @@ export default function BudgetPage() {
     return spending;
   }, [transactions, categories, selectedMonth]);
 
-  const handleDeleteBudget = async (id: number) => {
-    const res = await fetch('/api/budget', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-
-    if (res.ok) {
-      setBudgetLine(budgetLine.filter(b => b.id !== id));
-    }
-  };
-
   const getBudgetForCategory = (categoryId: number) => {
     return budgetLine.find(b => b.categoryId === categoryId);
   };
@@ -145,8 +134,17 @@ export default function BudgetPage() {
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <div className='flex justify-between'>
           <h2 className="text-xl font-semibold mb-6">Budget Overview</h2>
-          <Button className='bg-blue-600' onClick={() => setAddLine(true)}>
+          <Button 
+            className='bg-blue-600' 
+            onClick={() => setAddLine(true)}
+          >
             Add Line
+          </Button>
+          <Button 
+            className='bg-red-500'
+            onClick={() => setDeleteLine(true)}
+          >
+            Delete Line
           </Button>
         </div>
         
@@ -166,6 +164,9 @@ export default function BudgetPage() {
           budgetLines={budgetLine} 
           categories={categories}
           categorySpending={categorySpending}
+          deleteLine={deleteLine}
+          setDeleteLine={setDeleteLine}
+          onBudgetDeleted={(ids) => setBudgetLine(budgetLine.filter(b => !ids.includes(b.id)))}
         />
       </div>
     </main>
