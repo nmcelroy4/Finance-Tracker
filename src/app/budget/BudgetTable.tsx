@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { Input } from "@/components/ui/Input";
 import {
   Table,
   TableBody,
@@ -21,10 +22,13 @@ type BudgetTableProps = {
   deleteLine: boolean
   setDeleteLine: (value: boolean) => void
   onBudgetDeleted?: (ids: number[]) => void
+  onBudgetUpdated?: (id: number, newLimit: number) => void
 };
 
-export default function BudgetTable({ budgetLines, categories, categorySpending, deleteLine, setDeleteLine, onBudgetDeleted }: BudgetTableProps) {
+export default function BudgetTable({ budgetLines, categories, categorySpending, deleteLine, setDeleteLine, onBudgetDeleted, onBudgetUpdated }: BudgetTableProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editValue, setEditValue] = useState<string>('')
   
   const getCategoryName = (categoryId: number) => {
     return categories.find(c => c.id === categoryId)?.name || 'Unknown'
@@ -59,14 +63,6 @@ export default function BudgetTable({ budgetLines, categories, categorySpending,
     )
   }
 
-  const toggleAll = () => {
-    if (selectedIds.length === budgetLines.length) {
-      setSelectedIds([])
-    } else {
-      setSelectedIds(budgetLines.map(b => b.id))
-    }
-  }
-
   const handleDelete = async () => {
     try {
       for (const id of selectedIds) {
@@ -86,7 +82,37 @@ export default function BudgetTable({ budgetLines, categories, categorySpending,
     } catch (error) {
       console.error('Error deleting budgets:', error)
     }
-  };
+  }
+
+  const startEdit = (id: number, currentLimit: number) => {
+    setEditingId(id)
+    setEditValue((currentLimit / 100).toFixed(2))
+  }
+
+  const saveEdit = async (id: number) => {
+    if (!editValue) return
+
+    const res = await fetch('/api/budget', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        id, 
+        limit: Math.round(Number(editValue) * 100) 
+      }),
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      onBudgetUpdated?.(id, data.budget.limit)
+      setEditingId(null)
+      setEditValue('')
+    }
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditValue('')
+  }
 
   return (
     <>
@@ -111,7 +137,6 @@ export default function BudgetTable({ budgetLines, categories, categorySpending,
       )}
       
       <Table>
-        <TableCaption>Budget overview for all categories</TableCaption>
         <TableHeader>
           <TableRow>
             {deleteLine && <TableHead className="w-12"></TableHead>}
@@ -137,6 +162,7 @@ export default function BudgetTable({ budgetLines, categories, categorySpending,
               const status = getStatus(budgets.categoryId, budgets.limit)
               const percentage = getPercentage(budgets.categoryId, budgets.limit)
               const over = isOverBudget(budgets.categoryId, budgets.limit)
+              const isEditing = editingId === budgets.id
 
               return (
                 <TableRow key={budgets.id} className={over ? 'bg-red-50' : ''}>
@@ -151,7 +177,19 @@ export default function BudgetTable({ budgetLines, categories, categorySpending,
                   <TableCell className="font-medium">
                     {getCategoryName(budgets.categoryId)}
                   </TableCell>
-                  <TableCell>${(budgets.limit / 100).toFixed(2)}</TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="w-24"
+                      />
+                    ) : (
+                      `$${(budgets.limit / 100).toFixed(2)}`
+                    )}
+                  </TableCell>
                   <TableCell>${(spending / 100).toFixed(2)}</TableCell>
                   <TableCell className={over ? 'text-red-600 font-semibold' : ''}>
                     ${(remaining / 100).toFixed(2)}
@@ -175,6 +213,34 @@ export default function BudgetTable({ budgetLines, categories, categorySpending,
                       </div>
                       <span className="text-sm font-medium w-8">{percentage}%</span>
                     </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {isEditing ? (
+                      <div className="flex gap-1 justify-end">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => saveEdit(budgets.id)}
+                        >
+                          Save
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={cancelEdit}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={() => startEdit(budgets.id, budgets.limit)}
+                      >
+                        Edit
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               );

@@ -13,8 +13,6 @@ export default function BudgetPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgetLine, setBudgetLine] = useState<Budget[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [editingBudgetId, setEditingBudgetId] = useState<number | null>(null);
-  const [editAmount, setEditAmount] = useState('');
   const [addLine, setAddLine] = useState<boolean>(false)
   const [deleteLine, setDeleteLine] = useState<boolean>(false)
 
@@ -134,18 +132,20 @@ export default function BudgetPage() {
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <div className='flex justify-between'>
           <h2 className="text-xl font-semibold mb-6">Budget Overview</h2>
-          <Button 
-            className='bg-blue-600' 
-            onClick={() => setAddLine(true)}
-          >
-            Add Line
-          </Button>
-          <Button 
-            className='bg-red-500'
-            onClick={() => setDeleteLine(true)}
-          >
-            Delete Line
-          </Button>
+          <div>
+            <Button 
+              className='bg-blue-600' 
+              onClick={() => setAddLine(true)}
+            >
+              Add Line
+            </Button>
+            <Button 
+              className='bg-red-500'
+              onClick={() => setDeleteLine(prev => !prev)}
+            >
+              Delete Line
+            </Button>
+          </div>
         </div>
         
         {addLine && (
@@ -167,6 +167,9 @@ export default function BudgetPage() {
           deleteLine={deleteLine}
           setDeleteLine={setDeleteLine}
           onBudgetDeleted={(ids) => setBudgetLine(budgetLine.filter(b => !ids.includes(b.id)))}
+          onBudgetUpdated={(id, newLimit) => {
+            setBudgetLine(budgetLine.map(b => b.id === id ? {...b, limit: newLimit} : b))
+          }}
         />
       </div>
     </main>
