@@ -1,16 +1,20 @@
 'use client';
 
-import BudgetTable from '@/components/BudgetTable';
+import BudgetTable from '@/app/budget/BudgetTable';
 import { useEffect, useState, useMemo } from 'react';
 import { Category, Transaction, Budget } from '@/types';
+import { Button } from '@/components/ui/Button';
+import { FunnelPlus } from 'lucide-react';
+import AddLineModal from './AddLineModal';
+
 
 export default function BudgetPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [budgetLine, setBudgetLine] = useState<Budget[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [editingBudgetId, setEditingBudgetId] = useState<number | null>(null);
-  const [editAmount, setEditAmount] = useState('');
+  const [addLine, setAddLine] = useState<boolean>(false)
+  const [deleteLine, setDeleteLine] = useState<boolean>(false)
 
   const getCurrentMonth = () => {
     const now = new Date();
@@ -21,7 +25,6 @@ export default function BudgetPage() {
     setSelectedMonth(getCurrentMonth());
   }, []);
 
-  // fetch data
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -43,7 +46,8 @@ export default function BudgetPage() {
     loadData();
   }, []);
 
-  // Load budgets for selected month
+  const expenseCategories = categories.filter(c => c.type === 'expense');
+
   useEffect(() => {
     if (!selectedMonth) return;
 
@@ -51,7 +55,7 @@ export default function BudgetPage() {
       try {
         const res = await fetch(`/api/budget?monthYear=${selectedMonth}`);
         const data = await res.json();
-        setBudgets(data);  // ← Changed from setbudget
+        setBudgetLine(data);
       } catch (error) {
         console.error('Failed to load budget:', error);
       }
@@ -60,7 +64,6 @@ export default function BudgetPage() {
     loadBudgets();
   }, [selectedMonth]);
 
-  // Calculate spending by category for selected month
   const categorySpending = useMemo(() => {
     const spending: Record<number, number> = {};
 
@@ -81,48 +84,8 @@ export default function BudgetPage() {
     return spending;
   }, [transactions, categories, selectedMonth]);
 
-  // Get expense categories only
-  const expenseCategories = categories.filter(c => c.type === 'expense');
-
-  const handleSetBudget = async (categoryId: number, amount: string) => {
-    if (!amount || Number(amount) <= 0) return;
-
-    const res = await fetch('/api/budget', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        categoryId,
-        monthYear: selectedMonth,
-        limit: Math.round(Number(amount) * 100),
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setBudgets(
-        budgets.some(b => b.categoryId === categoryId)
-          ? budgets.map(b => b.categoryId === categoryId ? data.budget : b)
-          : [...budgets, data.budget]
-      );
-      setEditingBudgetId(null);
-      setEditAmount('');
-    }
-  };
-
-  const handleDeleteBudget = async (id: number) => {
-    const res = await fetch('/api/budget', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-
-    if (res.ok) {
-      setBudgets(budgets.filter(b => b.id !== id));
-    }
-  };
-
   const getBudgetForCategory = (categoryId: number) => {
-    return budgets.find(b => b.categoryId === categoryId);
+    return budgetLine.find(b => b.categoryId === categoryId);
   };
 
   const getSpendingForCategory = (categoryId: number) => {
@@ -130,16 +93,12 @@ export default function BudgetPage() {
   };
 
     return (
-    <main className="max-w-6xl mx-auto p-8">
+    <main className="max-w-full mx-auto p-8">
         <header className="flex center">
             <h1 className="text-3xl font-bold mb-8">Budget</h1>
-            <label className="block text-sm font-medium mb-2">Select Month</label>
-            <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="border rounded px-3 py-2"
-            />
+            <Button className="ml-2" variant="outline" size="icon" aria-label="filter">
+                <FunnelPlus />
+            </Button>
         </header>
         
 
@@ -148,7 +107,7 @@ export default function BudgetPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <p className="text-sm text-blue-700 font-medium">Total Budgeted</p>
           <p className="text-3xl font-bold text-blue-900">
-            ${(budgets.reduce((sum, b) => sum + b.limit, 0) / 100).toFixed(2)}
+            ${(budgetLine.reduce((sum, b) => sum + b.limit, 0) / 100).toFixed(2)}
           </p>
         </div>
 
@@ -163,7 +122,7 @@ export default function BudgetPage() {
           <p className="text-sm text-green-700 font-medium">Remaining</p>
           <p className="text-3xl font-bold text-green-900">
             ${(
-              (budgets.reduce((sum, b) => sum + b.limit, 0) - Object.values(categorySpending).reduce((a, b) => a + b, 0)) / 100 
+              (budgetLine.reduce((sum, b) => sum + b.limit, 0) - Object.values(categorySpending).reduce((a, b) => a + b, 0)) / 100 
             ).toFixed(2)}
           </p>
         </div>
@@ -171,96 +130,47 @@ export default function BudgetPage() {
 
       {/* Budget Table */}
       <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-6">Budget Overview</h2>
+        <div className='flex justify-between'>
+          <h2 className="text-xl font-semibold mb-6">Budget Overview</h2>
+          <div>
+            <Button 
+              className='bg-blue-600' 
+              onClick={() => setAddLine(true)}
+            >
+              Add Line
+            </Button>
+            <Button 
+              className='bg-red-500'
+              onClick={() => setDeleteLine(prev => !prev)}
+            >
+              Delete Line
+            </Button>
+          </div>
+        </div>
+        
+        {addLine && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <AddLineModal 
+              setAddLine={setAddLine} 
+              categories={expenseCategories} 
+              month={selectedMonth}
+              budgetLine={budgetLine}
+              setBudgetLine={setBudgetLine}
+            />
+          </div>
+        )}
+        
         <BudgetTable
-          budgets={budgets} 
+          budgetLines={budgetLine} 
           categories={categories}
           categorySpending={categorySpending}
+          deleteLine={deleteLine}
+          setDeleteLine={setDeleteLine}
+          onBudgetDeleted={(ids) => setBudgetLine(budgetLine.filter(b => !ids.includes(b.id)))}
+          onBudgetUpdated={(id, newLimit) => {
+            setBudgetLine(budgetLine.map(b => b.id === id ? {...b, limit: newLimit} : b))
+          }}
         />
-      </div>
-
-      {/* Budget Tracking */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-6">Budget Tracking by Category</h2>
-
-        <div className="space-y-6">
-          {expenseCategories.map((category) => {
-            const budgetItem = getBudgetForCategory(category.id); 
-            const spending = getSpendingForCategory(category.id);
-            const budgetLimit = budgetItem?.limit || 0;  // ← Changed from budget?.limit
-            const percentage = budgetLimit > 0 ? (spending / budgetLimit) * 100 : 0;
-            const isOverBudget = spending > budgetLimit && budgetLimit > 0;
-
-            return (
-              <div key={category.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{category.icon}</span>
-                    <h3 className="font-semibold">{category.name}</h3>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">
-                      ${(spending / 100).toFixed(2)}
-                      {budgetLimit > 0 && (
-                        <span className="text-gray-500 font-normal">
-                          {' '}/ ${(budgetLimit / 100).toFixed(2)}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Edit Budget */}
-                {editingBudgetId === category.id ? (
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      className="flex-1 border rounded px-3 py-2"
-                      placeholder="Budget limit"
-                      value={editAmount}
-                      onChange={(e) => setEditAmount(e.target.value)}
-                    />
-                    <button
-                      onClick={() => handleSetBudget(category.id, editAmount)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingBudgetId(null);
-                        setEditAmount('');
-                      }}
-                      className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingBudgetId(category.id);
-                        setEditAmount((budgetLimit / 100).toString());
-                      }}
-                      className="flex-1 bg-blue-100 text-blue-700 px-3 py-2 rounded hover:bg-blue-200"
-                    >
-                      {budgetLimit > 0 ? 'Edit Budget' : 'Set Budget'}
-                    </button>
-                    {budgetLimit > 0 && (
-                      <button
-                        onClick={() => handleDeleteBudget(budgetItem!.id)}
-                        className="bg-red-100 text-red-700 px-3 py-2 rounded hover:bg-red-200"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
       </div>
     </main>
   );

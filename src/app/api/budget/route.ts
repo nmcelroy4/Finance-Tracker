@@ -93,3 +93,29 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to delete budget' }, { status: 500 });
   }
 }
+
+export async function PUT(req: NextRequest) {
+  const body = await req.json();
+  const { id, limit } = body;
+
+  if (!id || limit === undefined) {
+    return NextResponse.json({ error: 'Missing id or limit' }, { status: 400 });
+  }
+
+  try {
+    const updated = await db
+      .update(budget)
+      .set({ limit })
+      .where(eq(budget.id, id))
+      .returning();
+
+    if (updated.length === 0) {
+      return NextResponse.json({ error: 'Budget not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, budget: updated[0] });
+  } catch (error) {
+    console.error('Budget update failed:', error);
+    return NextResponse.json({ error: 'Failed to update budget' }, { status: 500 });
+  }
+}
