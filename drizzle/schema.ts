@@ -3,9 +3,8 @@ import { pgTable, serial, text, integer, timestamp, varchar } from 'drizzle-orm/
 export const categories = pgTable('categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
-  type: varchar('type', { length: 20 }).notNull(), // 'income' or 'expense'
-  color: varchar('color', { length: 7 }).notNull(), // Hex color like '#FF6B6B'
-  icon: varchar('icon', { length: 10 }), // Optional emoji
+  type: varchar('type', { length: 20 }).notNull(),
+  color: varchar('color', { length: 7 }).notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

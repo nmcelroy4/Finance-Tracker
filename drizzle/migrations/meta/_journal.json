@@ -3,24 +3,10 @@
   "dialect": "postgresql",
   "entries": [
     {
-      "idx": 0,
+      "idx": 3,
       "version": "7",
-      "when": 1768066531023,
-      "tag": "0000_mixed_firelord",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1768323753932,
-      "tag": "0001_easy_celestials",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1777252172185,
-      "tag": "0002_dazzling_khan",
+      "when": 1781027058879,
+      "tag": "0003_furry_wolf_cub",
       "breakpoints": true
     }
   ]
