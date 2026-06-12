@@ -1,6 +1,6 @@
 {
-  "id": "1be8294d-818b-440e-95d5-f3312138fdc1",
-  "prevId": "81987160-fee4-48c9-af23-67c0560c8ac6",
+  "id": "09d2b2ec-7dc1-4a8f-ac8f-1a7130823500",
+  "prevId": "1be8294d-818b-440e-95d5-f3312138fdc1",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -89,12 +89,6 @@
           "type": "varchar(7)",
           "primaryKey": false,
           "notNull": true
-        },
-        "icon": {
-          "name": "icon",
-          "type": "varchar(10)",
-          "primaryKey": false,
-          "notNull": false
         },
         "created_at": {
           "name": "created_at",
