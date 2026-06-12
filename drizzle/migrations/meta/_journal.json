@@ -15,6 +15,13 @@
       "when": 1768323753932,
       "tag": "0001_easy_celestials",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777252172185,
+      "tag": "0002_dazzling_khan",
+      "breakpoints": true
     }
   ]
 }
