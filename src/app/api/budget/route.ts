@@ -21,36 +21,13 @@ export async function POST(req: NextRequest) {
   const { categoryId, monthYear, limit } = result.data;
 
   try {
-    // Check if budget already exists
-    const existing = await db
-      .select()
-      .from(budget)
-      .where(and(
-        eq(budget.categoryId, categoryId),
-        eq(budget.monthYear, monthYear)
-      ));
+    // Create new
+    const newBudget = await db
+      .insert(budget)
+      .values({ categoryId, monthYear, limit })
+      .returning();
 
-    if (existing.length > 0) {
-      // Update existing
-      const updated = await db
-        .update(budget)
-        .set({ limit })
-        .where(and(
-          eq(budget.categoryId, categoryId),
-          eq(budget.monthYear, monthYear)
-        ))
-        .returning();
-
-      return NextResponse.json({ success: true, budget: updated[0] });
-    } else {
-      // Create new
-      const newBudget = await db
-        .insert(budget)
-        .values({ categoryId, monthYear, limit })
-        .returning();
-
-      return NextResponse.json({ success: true, budget: newBudget[0] });
-    }
+    return NextResponse.json({ success: true, budget: newBudget[0] });
   } catch (error) {
     console.error('Budget creation failed:', error);
     return NextResponse.json({ error: 'Failed to save budget' }, { status: 500 });

@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import InfoTile from './InfoTile';
+import GoalsTile from './GoalsTile';
 
 type Category = {
   id: number;
@@ -50,7 +51,6 @@ export default function Dashboard({ transactions, categories }: DashboardProps) 
           totalExpenses += line.amount;
         }
 
-        // Track by category
         categoryTotals[line.categoryId] = (categoryTotals[line.categoryId] || 0) + line.amount;
       });
     });
@@ -128,35 +128,7 @@ export default function Dashboard({ transactions, categories }: DashboardProps) 
         </div>
 
         {/* Top 5 Categories - Bar Chart */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Top 5 Spending Categories</h3>
-          
-          {topCategories.length === 0 ? (
-            <p className="text-gray-500 text-center py-12">No expense data yet</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={topCategories}>
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip 
-                    formatter={(value) => `$${Number(value || 0).toFixed(2)}`}
-                    contentStyle={{ fontSize: '14px' }}
-                />
-                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                  {topCategories.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry?.color || '#888'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
+        <GoalsTile />
       </div>
 
       {/* Category Breakdown List */}

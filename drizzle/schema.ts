@@ -1,3 +1,4 @@
+import { primaryKey } from 'drizzle-orm/gel-core';
 import { pgTable, serial, text, integer, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 export const categories = pgTable('categories', {
@@ -11,7 +12,7 @@ export const categories = pgTable('categories', {
 export const transactions = pgTable('transactions', {
   id: serial('id').primaryKey(),
   description: text('description').notNull(),
-  totalAmount: integer('total_amount').notNull(), // In cents
+  totalAmount: integer('total_amount').notNull(),
   date: timestamp('date').notNull().defaultNow(),
   notes: text('notes'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -25,7 +26,7 @@ export const transactionLines = pgTable('transaction_lines', {
   categoryId: integer('category_id')
     .notNull()
     .references(() => categories.id),
-  amount: integer('amount').notNull(), // In cents
+  amount: integer('amount').notNull(),
   notes: text('notes'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
@@ -37,5 +38,14 @@ export const budget = pgTable('budget', {
   .references(() => categories.id, {onDelete: 'cascade'}),
   monthYear: varchar('month_year', {length: 7}).notNull(),
   limit: integer('limit').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
+export const goals = pgTable('goals', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  goalAmount: integer('goal_amount').notNull(),
+  currentAmount: integer('current_amount').notNull(),
+  dueDate: timestamp('due_date'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
