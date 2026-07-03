@@ -1,5 +1,5 @@
-import { primaryKey } from 'drizzle-orm/gel-core';
-import { pgTable, serial, text, integer, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { accountCategoryEnum, accountTypeEnum } from '@/types/enum';
+import { pgTable, serial, text, integer, timestamp, varchar, date, unique } from 'drizzle-orm/pg-core';
 
 export const categories = pgTable('categories', {
   id: serial('id').primaryKey(),
@@ -49,3 +49,25 @@ export const goals = pgTable('goals', {
   dueDate: timestamp('due_date'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
+
+export const accounts = pgTable('accounts', {
+  id:        serial('id').primaryKey(),
+  name:      text('name').notNull(),          
+  type:      accountTypeEnum('type').notNull(), 
+  category:  accountCategoryEnum('category').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+ 
+export const netWorthSnapshots = pgTable(
+  'net_worth_snapshots',
+  {
+    id:           serial('id').primaryKey(),
+    accountId:    integer('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
+    value:        integer('value').notNull(),
+    snapshotDate: date('snapshot_date').notNull(),
+    createdAt:    timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    unique().on(table.accountId, table.snapshotDate),
+  ]
+)

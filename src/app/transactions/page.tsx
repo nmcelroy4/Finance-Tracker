@@ -70,10 +70,10 @@ export default function TransactionsPage() {
     loadData();
   }, []);
 
-  const lineSum = lines.reduce((sum, line) => sum + line.amount, 0);
-  const total = Number(totalAmount) || 0;
+  const lineSumCents = lines.reduce((sum, line) => sum + Math.round(line.amount * 100), 0);
+  const totalCents = Math.round((Number(totalAmount) || 0) * 100);
   const allLinesValid = lines.every(line => line.categoryId > 0 && line.amount > 0);
-  const isValid = lineSum === total && total > 0 && description.trim() && allLinesValid;
+  const isValid = lineSumCents === totalCents && totalCents > 0 && description.trim() && allLinesValid;
 
   // Calculate validation for edit form
   const editLineSum = editLines.reduce((sum, line) => sum + line.amount, 0);
@@ -116,7 +116,7 @@ export default function TransactionsPage() {
 
     const payload = {
       description,
-      totalAmount: Math.round(total * 100),
+      totalAmount: totalCents,
       notes,
       lines: lines.map(line => ({
         categoryId: line.categoryId,
@@ -320,8 +320,8 @@ export default function TransactionsPage() {
             ))}
 
             <div className="mt-2 text-sm">
-              <span className={lineSum === total && total > 0 ? 'text-green-600' : 'text-red-600'}>
-                Line sum: ${(lineSum).toFixed(2)} / Total: ${(total).toFixed(2)}
+              <span className={lineSumCents === totalCents && totalCents > 0 ? 'text-green-600' : 'text-red-600'}>
+                Line sum: ${(lineSumCents / 100).toFixed(2)} / Total: ${(totalCents / 100).toFixed(2)}
               </span>
             </div>
           </div>

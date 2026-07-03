@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import InfoTile from './InfoTile';
 import GoalsTile from './GoalsTile';
+import NetWorthTile from './NetWorthTile';
 
 type Category = {
   id: number;
@@ -127,42 +128,12 @@ export default function Dashboard({ transactions, categories }: DashboardProps) 
           )}
         </div>
 
-        {/* Top 5 Categories - Bar Chart */}
         <GoalsTile />
       </div>
 
       {/* Category Breakdown List */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">All Categories Breakdown</h3>
-        
-        {categoryChartData.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">No data yet</p>
-        ) : (
-          <div className="space-y-2">
-            {categoryChartData.map((item, index) => {
-              if (!item) return null;
-              const percentage = ((item.value / (stats.totalExpenses / 100)) * 100).toFixed(1);
-              
-              return (
-                <div key={index} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-4 h-4 rounded"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="font-medium">
-                      {item.icon} {item.name}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">${item.value.toFixed(2)}</p>
-                    <p className="text-sm text-gray-500">{percentage}%</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+       <NetWorthTile />
       </div>
     </div>
   );
