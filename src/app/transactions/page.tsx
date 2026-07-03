@@ -75,11 +75,14 @@ export default function TransactionsPage() {
   const allLinesValid = lines.every(line => line.categoryId > 0 && line.amount > 0);
   const isValid = lineSumCents === totalCents && totalCents > 0 && description.trim() && allLinesValid;
 
-  // Calculate validation for edit form
-  const editLineSum = editLines.reduce((sum, line) => sum + line.amount, 0);
-  const editTotal = Number(editTotalAmount) || 0;
+  const editLineSumCents = editLines.reduce((sum, line) => sum + Math.round(line.amount * 100), 0);
+  const editTotalCents = Math.round((Number(editTotalAmount) || 0) * 100);
   const editAllLinesValid = editLines.every(line => line.categoryId > 0 && line.amount > 0);
-  const isEditValid = editLineSum === editTotal && editTotal > 0 && editDescription.trim() && editAllLinesValid;
+  const isEditValid = editLineSumCents === editTotalCents && editTotalCents > 0 && editDescription.trim() && editAllLinesValid;
+
+  // Add to state declarations
+  const [date, setDate] = useState('');
+  const [editDate, setEditDate] = useState('');
 
   const addLine = () => {
     setLines([...lines, { categoryId: 0, amount: 0, notes: '' }]);
@@ -117,6 +120,7 @@ export default function TransactionsPage() {
     const payload = {
       description,
       totalAmount: totalCents,
+      date: date ? new Date(date).toISOString() : undefined,
       notes,
       lines: lines.map(line => ({
         categoryId: line.categoryId,
@@ -138,6 +142,7 @@ export default function TransactionsPage() {
       setDescription('');
       setTotalAmount('');
       setNotes('');
+      setDate('');
       setLines([{ categoryId: 0, amount: 0, notes: '' }]);
     } else {
       const error = await res.json();
@@ -151,6 +156,7 @@ export default function TransactionsPage() {
     setEditDescription(transaction.description);
     setEditTotalAmount((transaction.totalAmount / 100).toString());
     setEditNotes(transaction.notes || '');
+    setEditDate(transaction.date ? transaction.date.split('T')[0] : '');
     setEditLines(
       transaction.lines.map(line => ({
         categoryId: line.categoryId,
@@ -168,7 +174,8 @@ export default function TransactionsPage() {
     const payload = {
       id: editingId,
       description: editDescription,
-      totalAmount: Math.round(editTotal * 100),
+      totalAmount: editTotalCents,
+      date: editDate ? new Date(editDate).toISOString() : undefined,
       notes: editNotes,
       lines: editLines.map(line => ({
         categoryId: line.categoryId,
@@ -247,6 +254,16 @@ export default function TransactionsPage() {
               value={totalAmount}
               onChange={(e) => setTotalAmount(e.target.value)}
               required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Date (optional)</label>
+            <input
+              type="date"
+              className="w-full border rounded px-3 py-2"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
             />
           </div>
 
@@ -376,6 +393,16 @@ export default function TransactionsPage() {
                         />
                       </div>
 
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Date (optional)</label>
+                        <input
+                          type="date"
+                          className="w-full border rounded px-3 py-2"
+                          value={editDate}
+                          onChange={(e) => setEditDate(e.target.value)}
+                        />
+                      </div>
+
                       <div className="mb-6">
                         <label className="block text-sm font-medium mb-1">Notes (optional)</label>
                         <input
@@ -445,8 +472,8 @@ export default function TransactionsPage() {
                         ))}
 
                         <div className="mt-2 text-sm">
-                          <span className={editLineSum === editTotal && editTotal > 0 ? 'text-green-600' : 'text-red-600'}>
-                            Line sum: ${(editLineSum).toFixed(2)} / Total: ${(editTotal).toFixed(2)}
+                          <span className={editLineSumCents === editTotalCents && editTotalCents > 0 ? 'text-green-600' : 'text-red-600'}>
+                            Line sum: ${(editLineSumCents / 100).toFixed(2)} / Total: ${(editTotalCents / 100).toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -479,7 +506,7 @@ export default function TransactionsPage() {
                     <div>
                       <h3 className="font-medium">{transaction.description}</h3>
                       <p className="text-sm text-gray-500">
-                        {new Date(transaction.date).toLocaleDateString()}
+                        {new Date(transaction.date).toLocaleDateString('en-US', { timeZone: 'UTC' })}
                       </p>
                     </div>
                     <div className="text-right">
