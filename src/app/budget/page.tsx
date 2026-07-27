@@ -21,6 +21,23 @@ export default function BudgetPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   };
 
+  const getPrevMonth = (month: string) => {
+    const [year, m] = month.split('-').map(Number);
+    const d = new Date(year, m - 2);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  const getNextMonth = (month: string) => {
+    const [year, m] = month.split('-').map(Number);
+    const d = new Date(year, m);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  const formatMonthLabel = (month: string) => {
+    const [year, m] = month.split('-').map(Number);
+    return new Date(year, m - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
   useEffect(() => {
     setSelectedMonth(getCurrentMonth());
   }, []);
@@ -69,7 +86,7 @@ export default function BudgetPage() {
 
     transactions.forEach((transaction) => {
       const transactionDate = new Date(transaction.date);
-      const transactionMonth = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
+      const transactionMonth = `${transactionDate.getUTCFullYear()}-${String(transactionDate.getUTCMonth() + 1).padStart(2, '0')}`;
 
       if (transactionMonth === selectedMonth) {
         transaction.lines.forEach((line) => {
@@ -94,13 +111,30 @@ export default function BudgetPage() {
 
     return (
     <main className="max-w-full mx-auto p-8">
-        <header className="flex center">
-            <h1 className="text-3xl font-bold mb-8">Budget</h1>
-            <Button className="ml-2" variant="outline" size="icon" aria-label="filter">
-                <FunnelPlus />
+        <header className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold">Budget</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSelectedMonth(getPrevMonth(selectedMonth))}
+              className="px-3 py-1 rounded border hover:bg-gray-100 text-lg"
+            >
+              ‹
+            </button>
+            <span className="text-lg font-medium w-44 text-center">
+              {selectedMonth ? formatMonthLabel(selectedMonth) : ''}
+            </span>
+            <button
+              onClick={() => setSelectedMonth(getNextMonth(selectedMonth))}
+              className="px-3 py-1 rounded border hover:bg-gray-100 text-lg"
+            >
+              ›
+            </button>
+            <Button variant="outline" size="icon" aria-label="filter">
+              <FunnelPlus />
             </Button>
+          </div>
         </header>
-        
+                
 
       {/* Budget Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
