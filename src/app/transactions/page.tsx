@@ -1,53 +1,52 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'
 
 type Category = {
-  id: number;
-  name: string;
-  type: string;
-  color: string;
-  icon: string | null;
-};
+  id: number
+  name: string
+  type: string
+  color: string
+  icon: string | null
+}
 
 type TransactionLine = {
-  id: number;
-  categoryId: number;
-  amount: number;
-  notes: string | null;
-};
+  id: number
+  categoryId: number
+  amount: number
+  notes: string | null
+}
 
 type Transaction = {
-  id: number;
-  description: string;
-  totalAmount: number;
-  date: string;
-  notes: string | null;
-  lines: TransactionLine[];
-};
+  id: number
+  description: string
+  totalAmount: number
+  date: string
+  notes: string | null
+  lines: TransactionLine[]
+}
 
 type NewLine = {
-  categoryId: number;
-  amount: number;
-  notes: string;
-};
+  categoryId: number
+  amount: number
+  notes: string
+}
 
 export default function TransactionsPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [description, setDescription] = useState('');
-  const [totalAmount, setTotalAmount] = useState('');
-  const [notes, setNotes] = useState('');
+  const [categories, setCategories] = useState<Category[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [description, setDescription] = useState('')
+  const [totalAmount, setTotalAmount] = useState('')
+  const [notes, setNotes] = useState('')
   const [lines, setLines] = useState<NewLine[]>([
     { categoryId: 0, amount: 0, notes: '' }
-  ]);
+  ])
 
-  // editing
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editDescription, setEditDescription] = useState('');
-  const [editTotalAmount, setEditTotalAmount] = useState('');
-  const [editNotes, setEditNotes] = useState('');
-  const [editLines, setEditLines] = useState<NewLine[]>([]);
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editDescription, setEditDescription] = useState('')
+  const [editTotalAmount, setEditTotalAmount] = useState('')
+  const [editNotes, setEditNotes] = useState('')
+  const [editLines, setEditLines] = useState<NewLine[]>([])
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,67 +54,68 @@ export default function TransactionsPage() {
         const [categoriesRes, transactionsRes] = await Promise.all([
           fetch('/api/categories'),
           fetch('/api/transactions'),
-        ]);
+        ])
         
-        const categoriesData = await categoriesRes.json();
-        const transactionsData = await transactionsRes.json();
+        const categoriesData = await categoriesRes.json()
+        const transactionsData = await transactionsRes.json()
         
-        setCategories(categoriesData);
-        setTransactions(transactionsData);
+        setCategories(categoriesData)
+        setTransactions(transactionsData)
       } catch (error) {
-        console.error('Failed to load data:', error);
+        console.error('Failed to load data:', error)
       }
-    };
+    }
 
-    loadData();
-  }, []);
+    loadData()
+  }, [])
 
-  const lineSumCents = lines.reduce((sum, line) => sum + Math.round(line.amount * 100), 0);
-  const totalCents = Math.round((Number(totalAmount) || 0) * 100);
-  const allLinesValid = lines.every(line => line.categoryId > 0 && line.amount > 0);
-  const isValid = lineSumCents === totalCents && totalCents > 0 && description.trim() && allLinesValid;
+  const lineSumCents = lines.reduce((sum, line) => sum + Math.round(line.amount * 100), 0)
+  const totalCents = Math.round((Number(totalAmount) || 0) * 100)
+  const allLinesValid = lines.every(line => line.categoryId > 0 && line.amount > 0)
+  const isValid = lineSumCents === totalCents && totalCents > 0 && description.trim() && allLinesValid
 
-  const editLineSumCents = editLines.reduce((sum, line) => sum + Math.round(line.amount * 100), 0);
-  const editTotalCents = Math.round((Number(editTotalAmount) || 0) * 100);
-  const editAllLinesValid = editLines.every(line => line.categoryId > 0 && line.amount > 0);
-  const isEditValid = editLineSumCents === editTotalCents && editTotalCents > 0 && editDescription.trim() && editAllLinesValid;
+  const editLineSumCents = editLines.reduce((sum, line) => sum + Math.round(line.amount * 100), 0)
+  const editTotalCents = Math.round((Number(editTotalAmount) || 0) * 100)
+  const editAllLinesValid = editLines.every(line => line.categoryId > 0 && line.amount > 0)
+  const isEditValid = editLineSumCents === editTotalCents && editTotalCents > 0 && editDescription.trim() && editAllLinesValid
 
-  // Add to state declarations
-  const [date, setDate] = useState('');
-  const [editDate, setEditDate] = useState('');
+  const [date, setDate] = useState('')
+  const [editDate, setEditDate] = useState('')
+  const [filterMonth, setFilterMonth] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const addLine = () => {
-    setLines([...lines, { categoryId: 0, amount: 0, notes: '' }]);
-  };
+    setLines([...lines, { categoryId: 0, amount: 0, notes: '' }])
+  }
 
   const removeLine = (index: number) => {
-    setLines(lines.filter((_, i) => i !== index));
-  };
+    setLines(lines.filter((_, i) => i !== index))
+  }
 
   const updateLine = (index: number, field: keyof NewLine, value: any) => {
-    const newLines = [...lines];
-    newLines[index] = { ...newLines[index], [field]: value };
-    setLines(newLines);
-  };
+    const newLines = [...lines]
+    newLines[index] = { ...newLines[index], [field]: value }
+    setLines(newLines)
+  }
 
   const addEditLine = () => {
-    setEditLines([...editLines, { categoryId: 0, amount: 0, notes: '' }]);
-  };
+    setEditLines([...editLines, { categoryId: 0, amount: 0, notes: '' }])
+  }
 
   const removeEditLine = (index: number) => {
-    setEditLines(editLines.filter((_, i) => i !== index));
-  };
+    setEditLines(editLines.filter((_, i) => i !== index))
+  }
 
   const updateEditLine = (index: number, field: keyof NewLine, value: any) => {
-    const newLines = [...editLines];
-    newLines[index] = { ...newLines[index], [field]: value };
-    setEditLines(newLines);
-  };
+    const newLines = [...editLines]
+    newLines[index] = { ...newLines[index], [field]: value }
+    setEditLines(newLines)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    if (!isValid) return;
+    if (!isValid) return
 
     const payload = {
       description,
@@ -127,49 +127,49 @@ export default function TransactionsPage() {
         amount: Math.round(line.amount * 100),
         notes: line.notes || undefined,
       })),
-    };
+    }
 
   const res = await fetch('/api/transactions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    });
+    })
 
     if (res.ok) {
-      const data = await res.json();
-      setTransactions([data.transaction, ...transactions]);
+      const data = await res.json()
+      setTransactions([data.transaction, ...transactions])
       
-      setDescription('');
-      setTotalAmount('');
-      setNotes('');
-      setDate('');
-      setLines([{ categoryId: 0, amount: 0, notes: '' }]);
+      setDescription('')
+      setTotalAmount('')
+      setNotes('')
+      setDate('')
+      setLines([{ categoryId: 0, amount: 0, notes: '' }])
     } else {
-      const error = await res.json();
-      console.error('API Error:', error);
-      alert(`Error: ${JSON.stringify(error)}`);
+      const error = await res.json()
+      console.error('API Error:', error)
+      alert(`Error: ${JSON.stringify(error)}`)
     }
-  };
+  }
 
   const startEdit = (transaction: Transaction) => {
-    setEditingId(transaction.id);
-    setEditDescription(transaction.description);
-    setEditTotalAmount((transaction.totalAmount / 100).toString());
-    setEditNotes(transaction.notes || '');
-    setEditDate(transaction.date ? transaction.date.split('T')[0] : '');
+    setEditingId(transaction.id)
+    setEditDescription(transaction.description)
+    setEditTotalAmount((transaction.totalAmount / 100).toString())
+    setEditNotes(transaction.notes || '')
+    setEditDate(transaction.date ? transaction.date.split('T')[0] : '')
     setEditLines(
       transaction.lines.map(line => ({
         categoryId: line.categoryId,
         amount: line.amount / 100,
         notes: line.notes || '',
       }))
-    );
-  };
+    )
+  }
 
   const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    if (!isEditValid || !editingId) return;
+    if (!isEditValid || !editingId) return
 
     const payload = {
       id: editingId,
@@ -182,46 +182,77 @@ export default function TransactionsPage() {
         amount: Math.round(line.amount * 100),
         notes: line.notes || undefined,
       })),
-    };
+    }
 
   const res = await fetch('/api/transactions', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
-    });
+    })
 
     if (res.ok) {
-      const data = await res.json();
+      const data = await res.json()
       setTransactions(
         transactions.map(t =>
           t.id === editingId ? data.transaction : t
         )
-      );
-      setEditingId(null);
+      )
+      setEditingId(null)
     } else {
-      const error = await res.json();
-      console.error('API Error:', error);
-      alert(`Error: ${JSON.stringify(error)}`);
+      const error = await res.json()
+      console.error('API Error:', error)
+      alert(`Error: ${JSON.stringify(error)}`)
     }
-  };
+  }
 
   const deleteTransaction = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this transaction?')) return;
+    if (!confirm('Are you sure you want to delete this transaction?')) return
 
     const res = await fetch('/api/transactions', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
-    });
+    })
 
     if (res.ok) {
-      setTransactions(transactions.filter(t => t.id !== id));
+      setTransactions(transactions.filter(t => t.id !== id))
     }
-  };
+  }
 
   const getCategoryById = (id: number) => {
-    return categories.find(c => c.id === id);
-  };
+    return categories.find(c => c.id === id)
+  }
+
+  const filteredTransactions = transactions.filter((transaction) => {
+    if (!transaction) return false
+
+    if (filterMonth) {
+      const txMonth = transaction.date?.slice(0, 7)
+      if (txMonth !== filterMonth) return false
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      const inDescription = transaction.description?.toLowerCase().includes(q)
+      const inNotes = transaction.notes?.toLowerCase().includes(q)
+      const inLines = (transaction.lines || []).some((line) => {
+        const category = getCategoryById(line.categoryId)
+        return (
+          line.notes?.toLowerCase().includes(q) ||
+          category?.name.toLowerCase().includes(q)
+        )
+      })
+      if (!inDescription && !inNotes && !inLines) return false
+    }
+
+    return true
+  })
+
+  const availableMonths = [...new Set(
+    transactions
+      .filter(t => t && t.date)
+      .map(t => t.date.slice(0, 7))
+  )].sort().reverse()
 
   return (
     <main className="max-w-full mx-auto p-8">
@@ -353,16 +384,46 @@ export default function TransactionsPage() {
         </form>
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <input
+          type="text"
+          placeholder="Search description, notes, or category..."
+          className="flex-1 border rounded px-3 py-2"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <select
+          className="border rounded px-3 py-2"
+          value={filterMonth}
+          onChange={(e) => setFilterMonth(e.target.value)}
+        >
+          <option value="">All months</option>
+          {availableMonths.map((month) => (
+            <option key={month} value={month}>
+              {new Date(month + '-02').toLocaleDateString('en-US', { year: 'numeric', month: 'long', timeZone: 'UTC' })}
+            </option>
+          ))}
+        </select>
+        {(filterMonth || searchQuery) && (
+          <button
+            onClick={() => { setFilterMonth(''); setSearchQuery(''); }}
+            className="text-sm text-gray-500 hover:underline px-2"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
       {/* Transactions List */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-4">All Transactions</h2>
         
-        {transactions.length === 0 ? (
+        {filteredTransactions.length === 0 ? (
           <p className="text-gray-500">No transactions yet. Add your first one above!</p>
         ) : (
           <div className="space-y-4">
-            {transactions.map((transaction) => {
-              if (!transaction || !transaction.id) return null;
+            {filteredTransactions.map((transaction) => {
+              if (!transaction || !transaction.id) return null
               
               // Editing mode
               if (editingId === transaction.id) {
@@ -496,7 +557,7 @@ export default function TransactionsPage() {
                       </div>
                     </form>
                   </div>
-                );
+                )
               }
 
               // Normal mode
@@ -534,8 +595,8 @@ export default function TransactionsPage() {
 
                   <div className="mt-3 space-y-1">
                     {(transaction.lines || []).map((line) => {
-                      const category = getCategoryById(line.categoryId);
-                      if (!category) return null;
+                      const category = getCategoryById(line.categoryId)
+                      if (!category) return null
                       
                       return (
                         <div key={line.id} className="flex justify-between text-sm">
@@ -549,15 +610,15 @@ export default function TransactionsPage() {
                           </span>
                           <span>${((line.amount || 0) / 100).toFixed(2)}</span>
                         </div>
-                      );
+                      )
                     })}
                   </div>
                 </div>
-              );
+              )
             })}
           </div>
         )}
       </div>
     </main>
-  );
+  )
 }
