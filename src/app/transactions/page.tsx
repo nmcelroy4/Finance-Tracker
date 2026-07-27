@@ -223,7 +223,8 @@ export default function TransactionsPage() {
     return categories.find(c => c.id === id)
   }
 
-  const filteredTransactions = transactions.filter((transaction) => {
+  const filteredTransactions: Transaction[] = transactions
+    .filter((transaction): transaction is Transaction => {
     if (!transaction) return false
 
     if (filterMonth) {
@@ -246,7 +247,7 @@ export default function TransactionsPage() {
     }
 
     return true
-  })
+  }).sort((a, b) => b.date.localeCompare(a.date));
 
   const availableMonths = [...new Set(
     transactions
@@ -425,7 +426,6 @@ export default function TransactionsPage() {
             {filteredTransactions.map((transaction) => {
               if (!transaction || !transaction.id) return null
               
-              // Editing mode
               if (editingId === transaction.id) {
                 return (
                   <div key={transaction.id} className="border-2 border-blue-400 rounded p-4 bg-blue-50">
@@ -560,7 +560,6 @@ export default function TransactionsPage() {
                 )
               }
 
-              // Normal mode
               return (
                 <div key={transaction.id} className="border rounded p-4">
                   <div className="flex justify-between items-start mb-2">
@@ -576,7 +575,7 @@ export default function TransactionsPage() {
                       </p>
                       <button
                           onClick={() => startEdit(transaction)}
-                          className="text-blue-600 text-sm hover:underline"
+                          className="text-blue-600 text-sm hover:underline p-1"
                         >
                           Edit
                        </button>
