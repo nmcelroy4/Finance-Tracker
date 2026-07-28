@@ -4,7 +4,7 @@ import BudgetTable from '@/app/budget/BudgetTable';
 import { useEffect, useState, useMemo } from 'react';
 import { Category, Transaction, Budget } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { FunnelPlus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FunnelPlus, Ghost } from 'lucide-react';
 import AddLineModal from './AddLineModal';
 
 
@@ -114,23 +114,22 @@ export default function BudgetPage() {
         <header className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Budget</h1>
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setSelectedMonth(getPrevMonth(selectedMonth))}
-              className="px-3 py-1 rounded border hover:bg-gray-100 text-lg"
+              className="px-3 py-1 rounded border"
             >
-              ‹
-            </button>
-            <span className="text-lg font-medium w-44 text-center">
+              <ChevronLeft />
+            </Button>
+            <span className="text-lg font-medium text-center">
               {selectedMonth ? formatMonthLabel(selectedMonth) : ''}
             </span>
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setSelectedMonth(getNextMonth(selectedMonth))}
-              className="px-3 py-1 rounded border hover:bg-gray-100 text-lg"
+              className="px-3 py-1 rounded border"
             >
-              ›
-            </button>
-            <Button variant="outline" size="icon" aria-label="filter">
-              <FunnelPlus />
+              <ChevronRight />
             </Button>
           </div>
         </header>
