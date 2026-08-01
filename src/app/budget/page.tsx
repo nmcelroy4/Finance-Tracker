@@ -6,6 +6,7 @@ import { Category, Transaction, Budget } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { ChevronLeft, ChevronRight, FunnelPlus, Ghost } from 'lucide-react';
 import AddLineModal from './AddLineModal';
+import InfoTile from '../dashboard/InfoTile';
 
 
 export default function BudgetPage() {
@@ -137,28 +138,9 @@ export default function BudgetPage() {
 
       {/* Budget Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <p className="text-sm text-blue-700 font-medium">Total Budgeted</p>
-          <p className="text-3xl font-bold text-blue-900">
-            ${(budgetLine.reduce((sum, b) => sum + b.limit, 0) / 100).toFixed(2)}
-          </p>
-        </div>
-
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-          <p className="text-sm text-orange-700 font-medium">Total Spent</p>
-          <p className="text-3xl font-bold text-orange-900">
-            ${(Object.values(categorySpending).reduce((a, b) => a + b, 0) / 100).toFixed(2)}
-          </p>
-        </div>
-
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <p className="text-sm text-green-700 font-medium">Remaining</p>
-          <p className="text-3xl font-bold text-green-900">
-            ${(
-              (budgetLine.reduce((sum, b) => sum + b.limit, 0) - Object.values(categorySpending).reduce((a, b) => a + b, 0)) / 100 
-            ).toFixed(2)}
-          </p>
-        </div>
+        <InfoTile title ="Total Budgeted" total={(budgetLine.reduce((sum, b) => sum + b.limit, 0) / 100).toFixed(2)} variant='success'/>
+        <InfoTile title ="Total Spent" total={(Object.values(categorySpending).reduce((a, b) => a + b, 0) / 100).toFixed(2)} variant='danger'/>
+        <InfoTile title ="Remaining" total={((budgetLine.reduce((sum, b) => sum + b.limit, 0) - Object.values(categorySpending).reduce((a, b) => a + b, 0)) / 100 ).toFixed(2)} />
       </div>
 
       {/* Budget Table */}
