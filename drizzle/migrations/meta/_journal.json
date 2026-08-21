@@ -1,34 +1,34 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1781027058879,
-      "tag": "0003_furry_wolf_cub",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1781975294616,
-      "tag": "0004_messy_dexter_bennett",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1781975399021,
-      "tag": "0005_purple_jazinda",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1782405518081,
-      "tag": "0006_orange_domino",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1781027058879,
+			"tag": "0003_furry_wolf_cub",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1781975294616,
+			"tag": "0004_messy_dexter_bennett",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1781975399021,
+			"tag": "0005_purple_jazinda",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1782405518081,
+			"tag": "0006_orange_domino",
+			"breakpoints": true
+		}
+	]
 }
