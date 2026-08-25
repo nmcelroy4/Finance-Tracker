@@ -12,9 +12,12 @@ export default function BudgetPage() {
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 	const [budgetLine, setBudgetLine] = useState<Budget[]>([]);
-	const [selectedMonth, setSelectedMonth] = useState<string>("");
+	const [selectedMonth, setSelectedMonth] = useState<string>(() =>
+		getCurrentMonth(),
+	);
 	const [addLine, setAddLine] = useState<boolean>(false);
 	const [deleteLine, setDeleteLine] = useState<boolean>(false);
+	const expenseCategories = categories.filter((c) => c.type === "expense");
 
 	const getCurrentMonth = () => {
 		const now = new Date();
@@ -23,14 +26,14 @@ export default function BudgetPage() {
 
 	const getPrevMonth = (month: string) => {
 		const [year, m] = month.split("-").map(Number);
-		const d = new Date(year, m - 2);
-		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+		const d = new Date(year, m - 1);
+		return `${d.getFullYear()}-${String(d.getMonth()).padStart(2, "0")}`;
 	};
 
 	const getNextMonth = (month: string) => {
 		const [year, m] = month.split("-").map(Number);
-		const d = new Date(year, m);
-		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+		const d = new Date(year, m + 1);
+		return `${d.getFullYear()}-${String(d.getMonth()).padStart(2, "0")}`;
 	};
 
 	const formatMonthLabel = (month: string) => {
@@ -40,10 +43,6 @@ export default function BudgetPage() {
 			year: "numeric",
 		});
 	};
-
-	useEffect(() => {
-		setSelectedMonth(getCurrentMonth());
-	}, []);
 
 	useEffect(() => {
 		const loadData = async () => {
@@ -65,8 +64,6 @@ export default function BudgetPage() {
 
 		loadData();
 	}, []);
-
-	const expenseCategories = categories.filter((c) => c.type === "expense");
 
 	useEffect(() => {
 		if (!selectedMonth) return;
