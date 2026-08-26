@@ -144,7 +144,7 @@ export default function BudgetPage() {
 					variant="danger"
 				/>
 				<InfoTile
-					title="Remaining"
+					title="Monthly Burn Rate"
 					total={(
 						(budgetLine.reduce((sum, b) => sum + b.limit, 0) -
 							Object.values(categorySpending).reduce((a, b) => a + b, 0)) /
