@@ -98,6 +98,10 @@ export default function TransactionsPage() {
 		editDescription.trim() &&
 		editAllLinesValid;
 
+  const [date, setDate] = useState('')
+  const [editDate, setEditDate] = useState('')
+  const [filterMonth, setFilterMonth] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 	// Add to state declarations
 	const [date, setDate] = useState("");
 	const [editDate, setEditDate] = useState("");
@@ -235,6 +239,41 @@ export default function TransactionsPage() {
 		}
 	};
 
+  const getCategoryById = (id: number) => {
+    return categories.find(c => c.id === id)
+  }
+
+  const filteredTransactions: Transaction[] = transactions
+    .filter((transaction): transaction is Transaction => {
+    if (!transaction) return false
+
+    if (filterMonth) {
+      const txMonth = transaction.date?.slice(0, 7)
+      if (txMonth !== filterMonth) return false
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      const inDescription = transaction.description?.toLowerCase().includes(q)
+      const inNotes = transaction.notes?.toLowerCase().includes(q)
+      const inLines = (transaction.lines || []).some((line) => {
+        const category = getCategoryById(line.categoryId)
+        return (
+          line.notes?.toLowerCase().includes(q) ||
+          category?.name.toLowerCase().includes(q)
+        )
+      })
+      if (!inDescription && !inNotes && !inLines) return false
+    }
+
+    return true
+  }).sort((a, b) => b.date.localeCompare(a.date));
+
+  const availableMonths = [...new Set(
+    transactions
+      .filter(t => t && t.date)
+      .map(t => t.date.slice(0, 7))
+  )].sort().reverse()
 	const getCategoryById = (id: number) => {
 		return categories.find((c) => c.id === id);
 	};
@@ -378,6 +417,45 @@ export default function TransactionsPage() {
 						</div>
 					</div>
 
+          <button
+            type="submit"
+            disabled={!isValid}
+            className="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            Add Transaction
+          </button>
+        </form>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <input
+          type="text"
+          placeholder="Search description, notes, or category..."
+          className="flex-1 border rounded px-3 py-2"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <select
+          className="border rounded px-3 py-2"
+          value={filterMonth}
+          onChange={(e) => setFilterMonth(e.target.value)}
+        >
+          <option value="">All months</option>
+          {availableMonths.map((month) => (
+            <option key={month} value={month}>
+              {new Date(month + '-02').toLocaleDateString('en-US', { year: 'numeric', month: 'long', timeZone: 'UTC' })}
+            </option>
+          ))}
+        </select>
+        {(filterMonth || searchQuery) && (
+          <button
+            onClick={() => { setFilterMonth(''); setSearchQuery(''); }}
+            className="text-sm text-gray-500 hover:underline px-2"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
 					<button
 						type="submit"
 						disabled={!isValid}
@@ -388,6 +466,32 @@ export default function TransactionsPage() {
 				</form>
 			</div>
 
+      {/* Transactions List */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold mb-4">All Transactions</h2>
+        
+        {filteredTransactions.length === 0 ? (
+          <p className="text-gray-500">No transactions yet. Add your first one above!</p>
+        ) : (
+          <div className="space-y-4">
+            {filteredTransactions.map((transaction) => {
+              if (!transaction || !transaction.id) return null
+              
+              if (editingId === transaction.id) {
+                return (
+                  <div key={transaction.id} className="border-2 border-blue-400 rounded p-4 bg-blue-50">
+                    <h3 className="font-semibold mb-4">Edit Transaction</h3>
+                    <form onSubmit={handleEditSubmit}>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">Description</label>
+                        <input
+                          type="text"
+                          className="w-full border rounded px-3 py-2"
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                          required
+                        />
+                      </div>
 			{/* Transactions List */}
 			<div className="bg-white rounded-lg shadow p-6">
 				<h2 className="text-xl font-semibold mb-4">All Transactions</h2>
