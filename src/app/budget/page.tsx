@@ -12,9 +12,6 @@ export default function BudgetPage() {
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 	const [budgetLine, setBudgetLine] = useState<Budget[]>([]);
-	const [selectedMonth, setSelectedMonth] = useState<string>(() =>
-		getCurrentMonth(),
-	);
 	const [addLine, setAddLine] = useState<boolean>(false);
 	const [deleteLine, setDeleteLine] = useState<boolean>(false);
 	const expenseCategories = categories.filter((c) => c.type === "expense");
@@ -23,6 +20,10 @@ export default function BudgetPage() {
 		const now = new Date();
 		return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 	};
+
+	const [selectedMonth, setSelectedMonth] = useState<string>(() =>
+		getCurrentMonth(),
+	);
 
 	const getPrevMonth = (month: string) => {
 		const [year, m] = month.split("-").map(Number);

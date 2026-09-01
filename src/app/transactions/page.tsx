@@ -98,13 +98,10 @@ export default function TransactionsPage() {
 		editDescription.trim() &&
 		editAllLinesValid;
 
-  const [date, setDate] = useState('')
-  const [editDate, setEditDate] = useState('')
-  const [filterMonth, setFilterMonth] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-	// Add to state declarations
 	const [date, setDate] = useState("");
 	const [editDate, setEditDate] = useState("");
+	const [filterMonth, setFilterMonth] = useState("");
+	const [searchQuery, setSearchQuery] = useState("");
 
 	const addLine = () => {
 		setLines([...lines, { categoryId: 0, amount: 0, notes: "" }]);
@@ -239,44 +236,46 @@ export default function TransactionsPage() {
 		}
 	};
 
-  const getCategoryById = (id: number) => {
-    return categories.find(c => c.id === id)
-  }
-
-  const filteredTransactions: Transaction[] = transactions
-    .filter((transaction): transaction is Transaction => {
-    if (!transaction) return false
-
-    if (filterMonth) {
-      const txMonth = transaction.date?.slice(0, 7)
-      if (txMonth !== filterMonth) return false
-    }
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase()
-      const inDescription = transaction.description?.toLowerCase().includes(q)
-      const inNotes = transaction.notes?.toLowerCase().includes(q)
-      const inLines = (transaction.lines || []).some((line) => {
-        const category = getCategoryById(line.categoryId)
-        return (
-          line.notes?.toLowerCase().includes(q) ||
-          category?.name.toLowerCase().includes(q)
-        )
-      })
-      if (!inDescription && !inNotes && !inLines) return false
-    }
-
-    return true
-  }).sort((a, b) => b.date.localeCompare(a.date));
-
-  const availableMonths = [...new Set(
-    transactions
-      .filter(t => t && t.date)
-      .map(t => t.date.slice(0, 7))
-  )].sort().reverse()
 	const getCategoryById = (id: number) => {
 		return categories.find((c) => c.id === id);
 	};
+
+	const filteredTransactions: Transaction[] = transactions
+		.filter((transaction): transaction is Transaction => {
+			if (!transaction) return false;
+
+			if (filterMonth) {
+				const txMonth = transaction.date?.slice(0, 7);
+				if (txMonth !== filterMonth) return false;
+			}
+
+			if (searchQuery.trim()) {
+				const q = searchQuery.trim().toLowerCase();
+				const inDescription = transaction.description
+					?.toLowerCase()
+					.includes(q);
+				const inNotes = transaction.notes?.toLowerCase().includes(q);
+				const inLines = (transaction.lines || []).some((line) => {
+					const category = getCategoryById(line.categoryId);
+					return (
+						line.notes?.toLowerCase().includes(q) ||
+						category?.name.toLowerCase().includes(q)
+					);
+				});
+				if (!inDescription && !inNotes && !inLines) return false;
+			}
+
+			return true;
+		})
+		.sort((a, b) => b.date.localeCompare(a.date));
+
+	const availableMonths = [
+		...new Set(
+			transactions.filter((t) => t.date).map((t) => t.date.slice(0, 7)),
+		),
+	]
+		.sort()
+		.reverse();
 
 	return (
 		<main className="max-w-full mx-auto p-8">
@@ -288,10 +287,14 @@ export default function TransactionsPage() {
 
 				<form onSubmit={handleSubmit}>
 					<div className="mb-4">
-						<label className="block text-sm font-medium mb-1">
+						<label
+							htmlFor="description"
+							className="block text-sm font-medium mb-1"
+						>
 							Description
 						</label>
 						<input
+							id="description"
 							type="text"
 							className="w-full border rounded px-3 py-2"
 							placeholder="e.g., Target, Paycheck, Gas Station"
@@ -302,10 +305,14 @@ export default function TransactionsPage() {
 					</div>
 
 					<div className="mb-4">
-						<label className="block text-sm font-medium mb-1">
+						<label
+							htmlFor="total amount"
+							className="block text-sm font-medium mb-1"
+						>
 							Total Amount ($)
 						</label>
 						<input
+							id="total amount"
 							type="number"
 							step="0.01"
 							className="w-full border rounded px-3 py-2"
@@ -317,10 +324,11 @@ export default function TransactionsPage() {
 					</div>
 
 					<div className="mb-4">
-						<label className="block text-sm font-medium mb-1">
+						<label htmlFor="date" className="block text-sm font-medium mb-1">
 							Date (optional)
 						</label>
 						<input
+							id="date"
 							type="date"
 							className="w-full border rounded px-3 py-2"
 							value={date}
@@ -329,10 +337,11 @@ export default function TransactionsPage() {
 					</div>
 
 					<div className="mb-6">
-						<label className="block text-sm font-medium mb-1">
+						<label htmlFor="notes" className="block text-sm font-medium mb-1">
 							Notes (optional)
 						</label>
 						<input
+							id="notes"
 							type="text"
 							className="w-full border rounded px-3 py-2"
 							placeholder="Any additional details..."
@@ -354,6 +363,7 @@ export default function TransactionsPage() {
 						</div>
 
 						{lines.map((line, index) => (
+							// biome-ignore lint/suspicious/noArrayIndexKey: false
 							<div key={index} className="flex gap-2 mb-2">
 								<select
 									className={`flex-1 border rounded px-3 py-2 ${line.categoryId === 0 ? "border-red-300 bg-red-50" : ""}`}
@@ -417,45 +427,6 @@ export default function TransactionsPage() {
 						</div>
 					</div>
 
-          <button
-            type="submit"
-            disabled={!isValid}
-            className="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            Add Transaction
-          </button>
-        </form>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <input
-          type="text"
-          placeholder="Search description, notes, or category..."
-          className="flex-1 border rounded px-3 py-2"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <select
-          className="border rounded px-3 py-2"
-          value={filterMonth}
-          onChange={(e) => setFilterMonth(e.target.value)}
-        >
-          <option value="">All months</option>
-          {availableMonths.map((month) => (
-            <option key={month} value={month}>
-              {new Date(month + '-02').toLocaleDateString('en-US', { year: 'numeric', month: 'long', timeZone: 'UTC' })}
-            </option>
-          ))}
-        </select>
-        {(filterMonth || searchQuery) && (
-          <button
-            onClick={() => { setFilterMonth(''); setSearchQuery(''); }}
-            className="text-sm text-gray-500 hover:underline px-2"
-          >
-            Clear filters
-          </button>
-        )}
-      </div>
 					<button
 						type="submit"
 						disabled={!isValid}
@@ -466,46 +437,57 @@ export default function TransactionsPage() {
 				</form>
 			</div>
 
-      {/* Transactions List */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">All Transactions</h2>
-        
-        {filteredTransactions.length === 0 ? (
-          <p className="text-gray-500">No transactions yet. Add your first one above!</p>
-        ) : (
-          <div className="space-y-4">
-            {filteredTransactions.map((transaction) => {
-              if (!transaction || !transaction.id) return null
-              
-              if (editingId === transaction.id) {
-                return (
-                  <div key={transaction.id} className="border-2 border-blue-400 rounded p-4 bg-blue-50">
-                    <h3 className="font-semibold mb-4">Edit Transaction</h3>
-                    <form onSubmit={handleEditSubmit}>
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Description</label>
-                        <input
-                          type="text"
-                          className="w-full border rounded px-3 py-2"
-                          value={editDescription}
-                          onChange={(e) => setEditDescription(e.target.value)}
-                          required
-                        />
-                      </div>
+			<div className="flex flex-col sm:flex-row gap-3 mb-4">
+				<input
+					type="text"
+					placeholder="Search description, notes, or category..."
+					className="flex-1 border rounded px-3 py-2"
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+				/>
+				<select
+					className="border rounded px-3 py-2"
+					value={filterMonth}
+					onChange={(e) => setFilterMonth(e.target.value)}
+				>
+					<option value="">All months</option>
+					{availableMonths.map((month) => (
+						<option key={month} value={month}>
+							{new Date(month + "-02").toLocaleDateString("en-US", {
+								year: "numeric",
+								month: "long",
+								timeZone: "UTC",
+							})}
+						</option>
+					))}
+				</select>
+				{(filterMonth || searchQuery) && (
+					<button
+						type="button"
+						onClick={() => {
+							setFilterMonth("");
+							setSearchQuery("");
+						}}
+						className="text-sm text-gray-500 hover:underline px-2"
+					>
+						Clear filters
+					</button>
+				)}
+			</div>
+
 			{/* Transactions List */}
 			<div className="bg-white rounded-lg shadow p-6">
 				<h2 className="text-xl font-semibold mb-4">All Transactions</h2>
 
-				{transactions.length === 0 ? (
+				{filteredTransactions.length === 0 ? (
 					<p className="text-gray-500">
 						No transactions yet. Add your first one above!
 					</p>
 				) : (
 					<div className="space-y-4">
-						{transactions.map((transaction) => {
-							if (!transaction || !transaction.id) return null;
+						{filteredTransactions.map((transaction) => {
+							if (!transaction.id) return null;
 
-							// Editing mode
 							if (editingId === transaction.id) {
 								return (
 									<div
@@ -515,10 +497,14 @@ export default function TransactionsPage() {
 										<h3 className="font-semibold mb-4">Edit Transaction</h3>
 										<form onSubmit={handleEditSubmit}>
 											<div className="mb-4">
-												<label className="block text-sm font-medium mb-1">
+												<label
+													htmlFor="list description"
+													className="block text-sm font-medium mb-1"
+												>
 													Description
 												</label>
 												<input
+													id="list description"
 													type="text"
 													className="w-full border rounded px-3 py-2"
 													value={editDescription}
@@ -528,10 +514,14 @@ export default function TransactionsPage() {
 											</div>
 
 											<div className="mb-4">
-												<label className="block text-sm font-medium mb-1">
+												<label
+													htmlFor="list total amount"
+													className="block text-sm font-medium mb-1"
+												>
 													Total Amount ($)
 												</label>
 												<input
+													id="list total amount"
 													type="number"
 													step="0.01"
 													className="w-full border rounded px-3 py-2"
@@ -542,10 +532,14 @@ export default function TransactionsPage() {
 											</div>
 
 											<div className="mb-4">
-												<label className="block text-sm font-medium mb-1">
+												<label
+													htmlFor="list date"
+													className="block text-sm font-medium mb-1"
+												>
 													Date (optional)
 												</label>
 												<input
+													id="list date"
 													type="date"
 													className="w-full border rounded px-3 py-2"
 													value={editDate}
@@ -554,10 +548,14 @@ export default function TransactionsPage() {
 											</div>
 
 											<div className="mb-6">
-												<label className="block text-sm font-medium mb-1">
+												<label
+													htmlFor="list notes"
+													className="block text-sm font-medium mb-1"
+												>
 													Notes (optional)
 												</label>
 												<input
+													id="list notes"
 													type="text"
 													className="w-full border rounded px-3 py-2"
 													value={editNotes}
@@ -578,6 +576,7 @@ export default function TransactionsPage() {
 												</div>
 
 												{editLines.map((line, index) => (
+													// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
 													<div key={index} className="flex gap-2 mb-2">
 														<select
 															className={`flex-1 border rounded px-3 py-2 ${line.categoryId === 0 ? "border-red-300 bg-red-50" : ""}`}
@@ -691,12 +690,14 @@ export default function TransactionsPage() {
 												${((transaction.totalAmount || 0) / 100).toFixed(2)}
 											</p>
 											<button
+												type="button"
 												onClick={() => startEdit(transaction)}
 												className="text-blue-600 text-sm hover:underline"
 											>
 												Edit
 											</button>
 											<button
+												type="button"
 												onClick={() => deleteTransaction(transaction.id)}
 												className="text-red-600 text-sm hover:underline"
 											>
