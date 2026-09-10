@@ -195,7 +195,7 @@ export default function GoalsTile({
 
 	return (
 		<Card>
-			<CardContent className="pt-6">
+			<CardContent className="p-6">
 				<div className="flex items-center justify-between mb-4">
 					<CardTitle>{title}</CardTitle>
 					<div className="flex items-center gap-2">
@@ -222,7 +222,9 @@ export default function GoalsTile({
 				{creating && (
 					<div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-2 items-end border rounded-md p-3">
 						<div className="flex flex-col gap-1">
-							<label className="text-xs text-gray-500">Title</label>
+							<label htmlFor="Goal Title" className="text-xs text-gray-500">
+								Title
+							</label>
 							<Input
 								value={newTitle}
 								onChange={(e) => setNewTitle(e.target.value)}
@@ -230,7 +232,9 @@ export default function GoalsTile({
 							/>
 						</div>
 						<div className="flex flex-col gap-1">
-							<label className="text-xs text-gray-500">Goal amount ($)</label>
+							<label htmlFor="Goal Amount" className="text-xs text-gray-500">
+								Goal amount ($)
+							</label>
 							<Input
 								type="number"
 								step="0.01"
@@ -239,7 +243,10 @@ export default function GoalsTile({
 							/>
 						</div>
 						<div className="flex flex-col gap-1">
-							<label className="text-xs text-gray-500">
+							<label
+								htmlFor="Goal Starting Amount"
+								className="text-xs text-gray-500"
+							>
 								Starting amount ($)
 							</label>
 							<Input
@@ -250,7 +257,9 @@ export default function GoalsTile({
 							/>
 						</div>
 						<div className="flex flex-col gap-1">
-							<label className="text-xs text-gray-500">Due date</label>
+							<label htmlFor="Goal Due Date" className="text-xs text-gray-500">
+								Due date
+							</label>
 							<Input
 								type="date"
 								value={newDueDate}

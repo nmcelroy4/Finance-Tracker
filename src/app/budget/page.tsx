@@ -8,6 +8,7 @@ import type { Budget, Category, Transaction } from "@/types";
 import InfoTile from "../dashboard/InfoTile";
 import AddLineModal from "./AddLineModal";
 
+
 export default function BudgetPage() {
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -83,7 +84,7 @@ export default function BudgetPage() {
 	}, [selectedMonth]);
 
 	const categorySpending = useMemo(() => {
-		const spending: Record<number, number> = {};
+		const spending:  Record<string, number> = {};
 
 		transactions.forEach((transaction) => {
 			const transactionDate = new Date(transaction.date);
@@ -102,6 +103,14 @@ export default function BudgetPage() {
 
 		return spending;
 	}, [transactions, categories, selectedMonth]);
+
+	const remaining =
+		(budgetLine.reduce((sum, b) => sum + b.limit, 0) -
+			Object.values(categorySpending).reduce((a, b) => a + b, 0)) /
+		100;
+
+	const remainingVariant =
+		remaining > 0 ? "info" : remaining === 0 ? "success" : "danger";
 
 	return (
 		<main className="max-w-full mx-auto p-8">
@@ -129,7 +138,7 @@ export default function BudgetPage() {
 			</header>
 
 			{/* Budget Overview */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+			<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
 				<InfoTile
 					title="Total Budgeted"
 					total={(
@@ -147,10 +156,17 @@ export default function BudgetPage() {
 				<InfoTile
 					title="Monthly Burn Rate"
 					total={(
-						(budgetLine.reduce((sum, b) => sum + b.limit, 0) -
-							Object.values(categorySpending).reduce((a, b) => a + b, 0)) /
+						(Object.values(categorySpending).reduce((a, b) => a + b, 0) -
+							(categorySpending[
+								categories.find((c) => c.name.toLowerCase() === "saving")?.id ?? ""
+							] ?? 0)) /
 						100
 					).toFixed(2)}
+				/>
+				<InfoTile
+					title="Remaining"
+					total={(remaining).toFixed(2)}
+					variant={remainingVariant}
 				/>
 			</div>
 
