@@ -40,15 +40,24 @@ export const transactionLines = pgTable("transaction_lines", {
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const budget = pgTable("budget", {
-	id: serial("id").primaryKey(),
-	categoryId: integer("category_id")
-		.notNull()
-		.references(() => categories.id, { onDelete: "cascade" }),
-	monthYear: varchar("month_year", { length: 7 }).notNull(),
-	limit: integer("limit").notNull(),
-	createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const budget = pgTable(
+	"budget",
+	{
+		id: serial("id").primaryKey(),
+		categoryId: integer("category_id")
+			.notNull()
+			.references(() => categories.id, { onDelete: "cascade" }),
+		monthYear: varchar("month_year", { length: 7 }).notNull(),
+		limit: integer("limit").notNull(),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+	(table) => [
+		unique("budget_category_month_unique").on(
+			table.categoryId,
+			table.monthYear,
+		),
+	],
+);
 
 export const goals = pgTable("goals", {
 	id: serial("id").primaryKey(),

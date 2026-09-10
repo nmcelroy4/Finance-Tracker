@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db";
@@ -51,27 +51,37 @@ export async function POST(req: NextRequest) {
 	}
 
 	try {
+		const lineValues = sql.join(
+			lines.map(
+				(line) =>
+					sql`(${line.categoryId}, ${line.amount}, ${line.notes ?? null})`,
+			),
+			sql`, `,
+		);
+		const created = await db.execute<{ id: number }>(sql`
+			WITH new_transaction AS (
+				INSERT INTO transactions (description, total_amount, date, notes)
+				VALUES (${description}, ${totalAmount}, ${date ? new Date(date) : new Date()}, ${notes ?? null})
+				RETURNING id
+			), inserted_lines AS (
+				INSERT INTO transaction_lines (transaction_id, category_id, amount, notes)
+				SELECT new_transaction.id, line.category_id, line.amount, line.notes
+				FROM new_transaction
+				CROSS JOIN (VALUES ${lineValues}) AS line(category_id, amount, notes)
+			)
+			SELECT id FROM new_transaction
+		`);
+		const id = created.rows[0]?.id;
+		if (!id) throw new Error("Transaction insert did not return an ID");
+
 		const [newTransaction] = await db
-			.insert(transactions)
-			.values({
-				description,
-				totalAmount,
-				date: date ? new Date(date) : new Date(),
-				notes,
-			})
-			.returning();
-
-		const lineItems = lines.map((line) => ({
-			transactionId: newTransaction.id,
-			categoryId: line.categoryId,
-			amount: line.amount,
-			notes: line.notes,
-		}));
-
+			.select()
+			.from(transactions)
+			.where(eq(transactions.id, id));
 		const newLines = await db
-			.insert(transactionLines)
-			.values(lineItems)
-			.returning();
+			.select()
+			.from(transactionLines)
+			.where(eq(transactionLines.transactionId, id));
 
 		return NextResponse.json({
 			success: true,
@@ -90,35 +100,60 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-	const allTransactions = await db.select().from(transactions);
+	try {
+		const allTransactions = await db.select().from(transactions);
 
-	const transactionsWithLines = await Promise.all(
-		allTransactions.map(async (transaction) => {
-			const lines = await db
-				.select()
-				.from(transactionLines)
-				.where(eq(transactionLines.transactionId, transaction.id));
+		const transactionsWithLines = await Promise.all(
+			allTransactions.map(async (transaction) => {
+				const lines = await db
+					.select()
+					.from(transactionLines)
+					.where(eq(transactionLines.transactionId, transaction.id));
 
-			return {
-				...transaction,
-				lines,
-			};
-		}),
-	);
+				return {
+					...transaction,
+					lines,
+				};
+			}),
+		);
 
-	return NextResponse.json(transactionsWithLines);
+		return NextResponse.json(transactionsWithLines);
+	} catch (error) {
+		console.error("Failed to fetch transactions:", error);
+		return NextResponse.json(
+			{ error: "Failed to fetch transactions" },
+			{ status: 500 },
+		);
+	}
 }
 
 export async function DELETE(req: NextRequest) {
-	const { id } = await req.json();
-
-	if (typeof id !== "number") {
-		return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+	const result = z
+		.object({ id: z.number().int().positive() })
+		.safeParse(await req.json());
+	if (!result.success) {
+		return NextResponse.json({ error: result.error.errors }, { status: 400 });
 	}
 
-	await db.delete(transactions).where(eq(transactions.id, id));
-
-	return NextResponse.json({ success: true });
+	try {
+		const deleted = await db
+			.delete(transactions)
+			.where(eq(transactions.id, result.data.id))
+			.returning();
+		if (deleted.length === 0) {
+			return NextResponse.json(
+				{ error: "Transaction not found" },
+				{ status: 404 },
+			);
+		}
+		return NextResponse.json({ success: true });
+	} catch (error) {
+		console.error("Transaction deletion failed:", error);
+		return NextResponse.json(
+			{ error: "Failed to delete transaction" },
+			{ status: 500 },
+		);
+	}
 }
 
 export async function PUT(req: NextRequest) {
@@ -142,37 +177,47 @@ export async function PUT(req: NextRequest) {
 	}
 
 	try {
-		// Update the transaction
-		await db
-			.update(transactions)
-			.set({
-				description,
-				totalAmount,
-				date: date ? new Date(date) : undefined,
-				notes,
-			})
-			.where(eq(transactions.id, id));
-
-		await db
-			.delete(transactionLines)
-			.where(eq(transactionLines.transactionId, id));
-
-		const lineItems = lines.map((line) => ({
-			transactionId: id,
-			categoryId: line.categoryId,
-			amount: line.amount,
-			notes: line.notes,
-		}));
-
-		const updatedLines = await db
-			.insert(transactionLines)
-			.values(lineItems)
-			.returning();
-
+		const lineValues = sql.join(
+			lines.map(
+				(line) =>
+					sql`(${line.categoryId}, ${line.amount}, ${line.notes ?? null})`,
+			),
+			sql`, `,
+		);
+		const updates = date
+			? sql`description = ${description}, total_amount = ${totalAmount}, date = ${new Date(date)}, notes = ${notes ?? null}`
+			: sql`description = ${description}, total_amount = ${totalAmount}, notes = ${notes ?? null}`;
+		const updated = await db.execute<{ id: number }>(sql`
+			WITH updated_transaction AS (
+				UPDATE transactions
+				SET ${updates}
+				WHERE id = ${id}
+				RETURNING id
+			), deleted_lines AS (
+				DELETE FROM transaction_lines
+				WHERE transaction_id = (SELECT id FROM updated_transaction)
+			), inserted_lines AS (
+				INSERT INTO transaction_lines (transaction_id, category_id, amount, notes)
+				SELECT updated_transaction.id, line.category_id, line.amount, line.notes
+				FROM updated_transaction
+				CROSS JOIN (VALUES ${lineValues}) AS line(category_id, amount, notes)
+			)
+			SELECT id FROM updated_transaction
+		`);
+		if (!updated.rows[0]?.id) {
+			return NextResponse.json(
+				{ error: "Transaction not found" },
+				{ status: 404 },
+			);
+		}
 		const [updatedTransaction] = await db
 			.select()
 			.from(transactions)
 			.where(eq(transactions.id, id));
+		const updatedLines = await db
+			.select()
+			.from(transactionLines)
+			.where(eq(transactionLines.transactionId, id));
 
 		return NextResponse.json({
 			success: true,

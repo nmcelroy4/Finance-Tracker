@@ -80,25 +80,26 @@ const buildChartData = (snapshots: Snapshot[]): ChartPoint[] => {
 	for (const s of snapshots) {
 		byDate.set(s.snapshotDate, [...(byDate.get(s.snapshotDate) ?? []), s]);
 	}
+	const latestByAccount = new Map<number, Snapshot>();
 	return Array.from(byDate.entries())
 		.sort(([a], [b]) => a.localeCompare(b))
-		.map(([date, entries]) => ({
-			date,
-			label: monthLabel(date),
-			liquid:
-				entries
-					.filter((e) => e.accountType === "liquid")
-					.reduce((s, e) => s + e.value, 0) / 100,
-			nonLiquid:
-				entries
-					.filter((e) => e.accountType === "non_liquid")
-					.reduce((s, e) => s + e.value, 0) / 100,
-			debt:
-				entries
-					.filter((e) => e.accountType === "debt")
-					.reduce((s, e) => s + e.value, 0) / 100,
-			total: entries.reduce((s, e) => s + e.value, 0) / 100,
-		}));
+		.map(([date, entries]) => {
+			for (const entry of entries) latestByAccount.set(entry.accountId, entry);
+			const values = Array.from(latestByAccount.values());
+			const totalForType = (type: Snapshot["accountType"]) =>
+				values
+					.filter((entry) => entry.accountType === type)
+					.reduce((sum, entry) => sum + entry.value, 0) / 100;
+
+			return {
+				date,
+				label: monthLabel(date),
+				liquid: totalForType("liquid"),
+				nonLiquid: totalForType("non_liquid"),
+				debt: totalForType("debt"),
+				total: values.reduce((sum, entry) => sum + entry.value, 0) / 100,
+			};
+		});
 };
 
 const CATEGORY_OPTIONS = [

@@ -29,6 +29,13 @@
 			"when": 1782405518081,
 			"tag": "0006_orange_domino",
 			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "7",
+			"when": 1782405518082,
+			"tag": "0007_budget_category_month_unique",
+			"breakpoints": true
 		}
 	]
 }
