@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Dashboard from "@/app/dashboard/Dashboard";
 import type { Category, DashboardFilterRange, Transaction } from "@/types";
+import { endOfMonth, startOfMonth, subMonths } from 'date-fns';
+import { UTCDate } from '@date-fns/utc'
 
 export default function DashboardPage() {
 	const [categories, setCategories] = useState<Category[]>([]);
@@ -34,20 +36,20 @@ export default function DashboardPage() {
 	}, []);
 
 	const filteredTransactions = useMemo(() => {
-		const now = new Date();
+		const now = new UTCDate();
 		let startDate: Date;
 		let endDate: Date = now;
 
 		switch (dashboardFilterRange) {
 			case "this-month":
-				startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+				startDate = startOfMonth(now);
 				break;
 			case "last-month":
-				startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-				endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+				startDate = startOfMonth(subMonths(now, 1));
+				endDate = endOfMonth(subMonths(now, 1))
 				break;
 			case "last-3-months":
-				startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+				startDate = startOfMonth(subMonths(now, 3));
 				break;
 			case "custom":
 				if (!customStartDate || !customEndDate) return transactions;
@@ -91,7 +93,7 @@ export default function DashboardPage() {
 			}
 			case "custom":
 				if (!customStartDate || !customEndDate) return "Select dates";
-				return `${new Date(customStartDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} - ${new Date(customEndDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+				return `${new Date(customStartDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })} - ${new Date(customEndDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`;
 			case "all-time":
 			default:
 				return "All Time";

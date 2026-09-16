@@ -86,9 +86,6 @@ export default function Dashboard({
 			.sort((a, b) => (b?.value || 0) - (a?.value || 0)); // Sort by amount descending
 	}, [stats, categories]);
 
-	// Top 5 spending categories
-	const topCategories = categoryChartData.slice(0, 5);
-
 	return (
 		<div className="space-y-6">
 			{/* Summary Cards */}
