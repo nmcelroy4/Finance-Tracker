@@ -4,6 +4,12 @@ import { z } from "zod";
 import { db } from "@/db";
 import { transactionLines, transactions } from "../../../../drizzle/schema";
 
+// The database column is `timestamp without time zone`. Passing a JavaScript
+// Date lets the driver serialize it in the server's timezone, which can move a
+// midnight date into the prior day. Store an explicitly selected calendar date
+// as YYYY-MM-DD instead.
+const calendarDate = (value: string) => value.slice(0, 10);
+
 // Validation schemas
 const transactionLineSchema = z.object({
 	categoryId: z.number().int().positive(),
@@ -54,14 +60,14 @@ export async function POST(req: NextRequest) {
 		const lineValues = sql.join(
 			lines.map(
 				(line) =>
-					sql`(${line.categoryId}, ${line.amount}, ${line.notes ?? null})`,
+					sql`(${line.categoryId}::integer, ${line.amount}::integer, ${line.notes ?? null}::text)`,
 			),
 			sql`, `,
 		);
 		const created = await db.execute<{ id: number }>(sql`
 			WITH new_transaction AS (
 				INSERT INTO transactions (description, total_amount, date, notes)
-				VALUES (${description}, ${totalAmount}, ${date ? new Date(date) : new Date()}, ${notes ?? null})
+				VALUES (${description}, ${totalAmount}, ${date ? calendarDate(date) : new Date()}, ${notes ?? null})
 				RETURNING id
 			), inserted_lines AS (
 				INSERT INTO transaction_lines (transaction_id, category_id, amount, notes)
@@ -180,12 +186,12 @@ export async function PUT(req: NextRequest) {
 		const lineValues = sql.join(
 			lines.map(
 				(line) =>
-					sql`(${line.categoryId}, ${line.amount}, ${line.notes ?? null})`,
+					sql`(${line.categoryId}::integer, ${line.amount}::integer, ${line.notes ?? null}::text)`,
 			),
 			sql`, `,
 		);
 		const updates = date
-			? sql`description = ${description}, total_amount = ${totalAmount}, date = ${new Date(date)}, notes = ${notes ?? null}`
+			? sql`description = ${description}, total_amount = ${totalAmount}, date = ${calendarDate(date)}, notes = ${notes ?? null}`
 			: sql`description = ${description}, total_amount = ${totalAmount}, notes = ${notes ?? null}`;
 		const updated = await db.execute<{ id: number }>(sql`
 			WITH updated_transaction AS (

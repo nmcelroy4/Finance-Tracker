@@ -7,17 +7,24 @@ import { Input } from "@/components/ui/Input";
 import {
 	Table,
 	TableBody,
-	TableCaption,
 	TableCell,
 	TableHead,
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import type { Budget, Category } from "@/types";
+import type { Budget, Category, Transaction } from "@/types";
+
+const transactionCalendarDate = (value: string) =>
+	new Date(value).toISOString().slice(0, 10);
+
+const formatTransactionDate = (value: string) =>
+	new Date(value).toLocaleDateString("en-US", { timeZone: "UTC" });
 
 type BudgetTableProps = {
 	budgetLines: Budget[];
 	categories: Category[];
+	transactions: Transaction[];
+	monthYear: string;
 	categorySpending: Record<number, number>;
 	deleteLine: boolean;
 	setDeleteLine: (value: boolean) => void;
@@ -28,6 +35,8 @@ type BudgetTableProps = {
 export default function BudgetTable({
 	budgetLines,
 	categories,
+	transactions,
+	monthYear,
 	categorySpending,
 	deleteLine,
 	setDeleteLine,
@@ -37,6 +46,13 @@ export default function BudgetTable({
 	const [selectedIds, setSelectedIds] = useState<number[]>([]);
 	const [editingId, setEditingId] = useState<number | null>(null);
 	const [editValue, setEditValue] = useState<string>("");
+	const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+	const [transactionSearch, setTransactionSearch] = useState("");
+	const [startDate, setStartDate] = useState("");
+	const [endDate, setEndDate] = useState("");
+	const hasInvalidDateRange = Boolean(
+		startDate && endDate && startDate > endDate,
+	);
 
 	const getCategoryName = (categoryId: number) => {
 		return categories.find((c) => c.id === categoryId)?.name || "Unknown";
@@ -120,6 +136,63 @@ export default function BudgetTable({
 		setEditValue("");
 	};
 
+	const openTransactionModal = (budget: Budget) => {
+		setSelectedBudget(budget);
+		setTransactionSearch("");
+		setStartDate("");
+		setEndDate("");
+	};
+
+	const closeTransactionModal = () => {
+		setSelectedBudget(null);
+		setTransactionSearch("");
+		setStartDate("");
+		setEndDate("");
+	};
+
+	const selectedCategory = selectedBudget
+		? categories.find((category) => category.id === selectedBudget.categoryId)
+		: null;
+	const categoryTransactions = selectedBudget
+		? transactions
+				.filter((transaction) => {
+					const transactionDate = new Date(transaction.date);
+					const transactionMonth = `${transactionDate.getUTCFullYear()}-${String(
+						transactionDate.getUTCMonth() + 1,
+					).padStart(2, "0")}`;
+					return transactionMonth === monthYear;
+				})
+				.flatMap((transaction) =>
+					transaction.lines
+						.filter((line) => line.categoryId === selectedBudget.categoryId)
+						.map((line) => ({ transaction, line })),
+				)
+				.sort((a, b) => b.transaction.date.localeCompare(a.transaction.date))
+		: [];
+	const filteredTransactions = categoryTransactions.filter(
+		({ transaction }) => {
+			if (hasInvalidDateRange) return false;
+			const date = transactionCalendarDate(transaction.date);
+			const matchesDescription = transaction.description
+				.toLowerCase()
+				.includes(transactionSearch.trim().toLowerCase());
+			return (
+				matchesDescription &&
+				(!startDate || date >= startDate) &&
+				(!endDate || date <= endDate) // Both endpoints are inclusive.
+			);
+		},
+	);
+	const filteredTotal = filteredTransactions.reduce(
+		(sum, { line }) => sum + line.amount,
+		0,
+	);
+	const formatMonth = new Date(`${monthYear}-02`).toLocaleDateString("en-US", {
+		month: "long",
+		year: "numeric",
+		timeZone: "UTC",
+	});
+
 	return (
 		<>
 			{deleteLine && selectedIds.length > 0 && (
@@ -173,9 +246,16 @@ export default function BudgetTable({
 							const isEditing = editingId === budgets.id;
 
 							return (
-								<TableRow key={budgets.id} className={over ? "bg-red-50" : ""}>
+								<TableRow
+									key={budgets.id}
+									className={`cursor-pointer hover:bg-blue-50 ${over ? "bg-red-50 hover:bg-red-100" : ""}`}
+									onClick={() => openTransactionModal(budgets)}
+								>
 									{deleteLine && (
-										<TableCell className="w-12">
+										<TableCell
+											className="w-12"
+											onClick={(event) => event.stopPropagation()}
+										>
 											<Checkbox
 												checked={selectedIds.includes(budgets.id)}
 												onCheckedChange={() => toggleRow(budgets.id)}
@@ -185,7 +265,9 @@ export default function BudgetTable({
 									<TableCell className="font-medium">
 										{getCategoryName(budgets.categoryId)}
 									</TableCell>
-									<TableCell>
+									<TableCell
+										onClick={(event) => isEditing && event.stopPropagation()}
+									>
 										{isEditing ? (
 											<Input
 												type="number"
@@ -215,7 +297,10 @@ export default function BudgetTable({
 											{status}
 										</span>
 									</TableCell>
-									<TableCell className="text-right">
+									<TableCell
+										className="text-right"
+										onClick={(event) => event.stopPropagation()}
+									>
 										<div className="flex items-center gap-2 justify-end">
 											<div className="w-24 bg-gray-200 rounded-full h-2">
 												<div
@@ -262,6 +347,131 @@ export default function BudgetTable({
 					)}
 				</TableBody>
 			</Table>
+
+			{selectedBudget && selectedCategory && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+					<div className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+						<div className="mb-5 flex items-start justify-between gap-4">
+							<div>
+								<h2 className="text-xl font-semibold">
+									{selectedCategory.name} transactions
+								</h2>
+								<p className="text-sm text-gray-500">{formatMonth}</p>
+							</div>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={closeTransactionModal}
+							>
+								Close
+							</Button>
+						</div>
+
+						<div className="mb-5 grid gap-3 sm:grid-cols-3">
+							<div className="sm:col-span-3">
+								<label
+									htmlFor="category-transaction-search"
+									className="mb-1 block text-sm font-medium"
+								>
+									Search description
+								</label>
+								<Input
+									id="category-transaction-search"
+									value={transactionSearch}
+									onChange={(event) => setTransactionSearch(event.target.value)}
+									placeholder="Search transactions..."
+								/>
+							</div>
+							<div>
+								<label
+									htmlFor="category-transaction-start-date"
+									className="mb-1 block text-sm font-medium"
+								>
+									From date
+								</label>
+								<Input
+									id="category-transaction-start-date"
+									type="date"
+									value={startDate}
+									max={endDate || undefined}
+									aria-invalid={hasInvalidDateRange}
+									className={hasInvalidDateRange ? "border-red-500" : undefined}
+									onChange={(event) => setStartDate(event.target.value)}
+								/>
+							</div>
+							<div>
+								<label
+									htmlFor="category-transaction-end-date"
+									className="mb-1 block text-sm font-medium"
+								>
+									To date
+								</label>
+								<Input
+									id="category-transaction-end-date"
+									type="date"
+									value={endDate}
+									min={startDate || undefined}
+									aria-invalid={hasInvalidDateRange}
+									className={hasInvalidDateRange ? "border-red-500" : undefined}
+									onChange={(event) => setEndDate(event.target.value)}
+								/>
+							</div>
+							<div className="rounded-md bg-blue-50 px-3 py-2 text-sm">
+								<div className="text-gray-600">Filtered total</div>
+								<div className="text-lg font-semibold text-blue-900">
+									${(filteredTotal / 100).toFixed(2)}
+								</div>
+								<div className="text-xs text-gray-500">
+									{filteredTransactions.length} transaction
+									{filteredTransactions.length === 1 ? "" : "s"}
+								</div>
+							</div>
+							{hasInvalidDateRange && (
+								<p className="sm:col-span-3 text-sm text-red-600">
+									Start date must be on or before the end date.
+								</p>
+							)}
+						</div>
+
+						{filteredTransactions.length === 0 ? (
+							<p className="py-8 text-center text-gray-500">
+								No matching transactions in this category for {formatMonth}.
+							</p>
+						) : (
+							<div className="overflow-x-auto">
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Date</TableHead>
+											<TableHead>Description</TableHead>
+											<TableHead>Notes</TableHead>
+											<TableHead className="text-right">Amount</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{filteredTransactions.map(({ transaction, line }) => (
+											<TableRow key={`${transaction.id}-${line.id}`}>
+												<TableCell>
+													{formatTransactionDate(transaction.date)}
+												</TableCell>
+												<TableCell className="font-medium">
+													{transaction.description}
+												</TableCell>
+												<TableCell className="text-gray-600">
+													{line.notes || transaction.notes || "—"}
+												</TableCell>
+												<TableCell className="text-right font-medium">
+													${(line.amount / 100).toFixed(2)}
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</div>
+						)}
+					</div>
+				</div>
+			)}
 		</>
 	);
 }

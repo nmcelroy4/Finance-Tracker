@@ -8,7 +8,6 @@ import type { Budget, Category, Transaction } from "@/types";
 import InfoTile from "../dashboard/InfoTile";
 import AddLineModal from "./AddLineModal";
 
-
 export default function BudgetPage() {
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -84,7 +83,7 @@ export default function BudgetPage() {
 	}, [selectedMonth]);
 
 	const categorySpending = useMemo(() => {
-		const spending:  Record<string, number> = {};
+		const spending: Record<string, number> = {};
 
 		transactions.forEach((transaction) => {
 			const transactionDate = new Date(transaction.date);
@@ -158,14 +157,15 @@ export default function BudgetPage() {
 					total={(
 						(Object.values(categorySpending).reduce((a, b) => a + b, 0) -
 							(categorySpending[
-								categories.find((c) => c.name.toLowerCase() === "saving")?.id ?? ""
+								categories.find((c) => c.name.toLowerCase() === "saving")?.id ??
+									""
 							] ?? 0)) /
 						100
 					).toFixed(2)}
 				/>
 				<InfoTile
 					title="Remaining"
-					total={(remaining).toFixed(2)}
+					total={remaining.toFixed(2)}
 					variant={remainingVariant}
 				/>
 			</div>
@@ -202,6 +202,8 @@ export default function BudgetPage() {
 				<BudgetTable
 					budgetLines={budgetLine}
 					categories={categories}
+					transactions={transactions}
+					monthYear={selectedMonth}
 					categorySpending={categorySpending}
 					deleteLine={deleteLine}
 					setDeleteLine={setDeleteLine}
