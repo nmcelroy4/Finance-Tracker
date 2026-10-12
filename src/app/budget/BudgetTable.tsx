@@ -107,6 +107,7 @@ export default function BudgetTable({
 	};
 
 	const startEdit = (id: number, currentLimit: number) => {
+		
 		setEditingId(id);
 		setEditValue((currentLimit / 100).toFixed(2));
 	};
@@ -313,7 +314,10 @@ export default function BudgetTable({
 											</span>
 										</div>
 									</TableCell>
-									<TableCell className="text-right">
+									<TableCell 
+										className="text-right" 
+										onClick={(event) => event.stopPropagation()}
+									>
 										{isEditing ? (
 											<div className="flex gap-1 justify-end">
 												<Button
