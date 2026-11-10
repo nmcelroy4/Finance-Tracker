@@ -296,7 +296,7 @@ export default function TransactionsPage() {
 						<input
 							id="description"
 							type="text"
-							className="w-full border rounded px-3 py-2"
+							className="w-full max-w-xs border rounded px-3 py-2"
 							placeholder="e.g., Target, Paycheck, Gas Station"
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
@@ -304,36 +304,38 @@ export default function TransactionsPage() {
 						/>
 					</div>
 
-					<div className="mb-4">
-						<label
-							htmlFor="total amount"
-							className="block text-sm font-medium mb-1"
-						>
-							Total Amount ($)
-						</label>
-						<input
-							id="total amount"
-							type="number"
-							step="0.01"
-							className="w-full border rounded px-3 py-2"
-							placeholder="100.00"
-							value={totalAmount}
-							onChange={(e) => setTotalAmount(e.target.value)}
-							required
-						/>
-					</div>
+					<div className="flex space-x-3">
+						<div className="mb-4">
+							<label
+								htmlFor="total amount"
+								className="block text-sm font-medium mb-1"
+							>
+								Total Amount ($)
+							</label>
+							<input
+								id="total amount"
+								type="number"
+								step="0.01"
+								className="w-full max-w-xs border rounded px-3 py-2"
+								placeholder="100.00"
+								value={totalAmount}
+								onChange={(e) => setTotalAmount(e.target.value)}
+								required
+							/>
+						</div>
 
-					<div className="mb-4">
-						<label htmlFor="date" className="block text-sm font-medium mb-1">
-							Date (optional)
-						</label>
-						<input
-							id="date"
-							type="date"
-							className="w-full border rounded px-3 py-2"
-							value={date}
-							onChange={(e) => setDate(e.target.value)}
-						/>
+						<div className="mb-4">
+							<label htmlFor="date" className="block text-sm font-medium mb-1">
+								Date (optional)
+							</label>
+							<input
+								id="date"
+								type="date"
+								className="w-full max-w-2xl border rounded px-3 py-2"
+								value={date}
+								onChange={(e) => setDate(e.target.value)}
+							/>
+						</div>
 					</div>
 
 					<div className="mb-6">
