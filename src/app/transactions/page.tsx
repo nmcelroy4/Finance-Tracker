@@ -1,30 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-type Category = {
-	id: number;
-	name: string;
-	type: string;
-	color: string;
-	icon: string | null;
-};
-
-type TransactionLine = {
-	id: number;
-	categoryId: number;
-	amount: number;
-	notes: string | null;
-};
-
-type Transaction = {
-	id: number;
-	description: string;
-	totalAmount: number;
-	date: string;
-	notes: string | null;
-	lines: TransactionLine[];
-};
+import { Category, Transaction } from "@/types/index"
 
 type NewLine = {
 	categoryId: number;
