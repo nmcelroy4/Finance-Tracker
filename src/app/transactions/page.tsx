@@ -53,11 +53,11 @@ export default function TransactionsPage() {
 	);
 	const totalCents = Math.round((Number(totalAmount) || 0) * 100);
 	const allLinesValid = lines.every(
-		(line) => line.categoryId > 0 && line.amount > 0,
+		(line) => line.categoryId > 0 && line.amount != 0,
 	);
 	const isValid =
 		lineSumCents === totalCents &&
-		totalCents > 0 &&
+		totalCents != 0 &&
 		description.trim() &&
 		allLinesValid;
 
@@ -67,11 +67,11 @@ export default function TransactionsPage() {
 	);
 	const editTotalCents = Math.round((Number(editTotalAmount) || 0) * 100);
 	const editAllLinesValid = editLines.every(
-		(line) => line.categoryId > 0 && line.amount > 0,
+		(line) => line.categoryId > 0 && line.amount != 0,
 	);
 	const isEditValid =
 		editLineSumCents === editTotalCents &&
-		editTotalCents > 0 &&
+		editTotalCents != 0 &&
 		editDescription.trim() &&
 		editAllLinesValid;
 

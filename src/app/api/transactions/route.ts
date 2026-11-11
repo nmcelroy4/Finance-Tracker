@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db";
@@ -109,19 +109,26 @@ export async function GET() {
 	try {
 		const allTransactions = await db.select().from(transactions);
 
-		const transactionsWithLines = await Promise.all(
-			allTransactions.map(async (transaction) => {
-				const lines = await db
-					.select()
-					.from(transactionLines)
-					.where(eq(transactionLines.transactionId, transaction.id));
+		const ids = allTransactions.map((t) => t.id);
+		const allLines =
+			ids.length > 0
+				? await db
+						.select()
+						.from(transactionLines)
+						.where(inArray(transactionLines.transactionId, ids))
+				: [];
 
-				return {
-					...transaction,
-					lines,
-				};
-			}),
-		);
+		const linesByTransaction = new Map<number, typeof allLines>();
+		for (const line of allLines) {
+			const list = linesByTransaction.get(line.transactionId) ?? [];
+			list.push(line);
+			linesByTransaction.set(line.transactionId, list);
+		}
+
+		const transactionsWithLines = allTransactions.map((transaction) => ({
+			...transaction,
+			lines: linesByTransaction.get(transaction.id) ?? [],
+		}));
 
 		return NextResponse.json(transactionsWithLines);
 	} catch (error) {
