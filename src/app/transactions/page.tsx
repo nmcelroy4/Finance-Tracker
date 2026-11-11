@@ -18,6 +18,10 @@ export default function TransactionsPage() {
 	const [lines, setLines] = useState<NewLine[]>([
 		{ categoryId: 0, amount: 0, notes: "" },
 	]);
+	const [date, setDate] = useState("");
+	const [editDate, setEditDate] = useState("");
+	const [filterMonth, setFilterMonth] = useState("");
+	const [searchQuery, setSearchQuery] = useState("");
 
 	// editing
 	const [editingId, setEditingId] = useState<number | null>(null);
@@ -53,12 +57,12 @@ export default function TransactionsPage() {
 	);
 	const totalCents = Math.round((Number(totalAmount) || 0) * 100);
 	const allLinesValid = lines.every(
-		(line) => line.categoryId > 0 && line.amount != 0,
+		(line) => line.categoryId > 0 && line.amount !== 0,
 	);
-	const isValid =
+	const isValid : boolean =
 		lineSumCents === totalCents &&
-		totalCents != 0 &&
-		description.trim() &&
+		totalCents !== 0 &&
+		!!description.trim() &&
 		allLinesValid;
 
 	const editLineSumCents = editLines.reduce(
@@ -67,18 +71,13 @@ export default function TransactionsPage() {
 	);
 	const editTotalCents = Math.round((Number(editTotalAmount) || 0) * 100);
 	const editAllLinesValid = editLines.every(
-		(line) => line.categoryId > 0 && line.amount != 0,
+		(line) => line.categoryId > 0 && line.amount !== 0,
 	);
-	const isEditValid =
+	const isEditValid : boolean =
 		editLineSumCents === editTotalCents &&
-		editTotalCents != 0 &&
-		editDescription.trim() &&
+		editTotalCents !== 0 &&
+		!!editDescription.trim() &&
 		editAllLinesValid;
-
-	const [date, setDate] = useState("");
-	const [editDate, setEditDate] = useState("");
-	const [filterMonth, setFilterMonth] = useState("");
-	const [searchQuery, setSearchQuery] = useState("");
 
 	const addLine = () => {
 		setLines([...lines, { categoryId: 0, amount: 0, notes: "" }]);
